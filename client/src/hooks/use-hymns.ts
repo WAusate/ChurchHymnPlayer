@@ -4,11 +4,35 @@ import { HymnData } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 
 // Firebase imports with error handling
-let firebaseService: any = null;
-try {
-  firebaseService = require('@/lib/firebaseService');
-} catch (error) {
-  console.log('Firebase not configured, using fallback mode');
+import * as firebaseStub from '@/lib/firebaseService.stub';
+
+let firebaseService: any = firebaseStub;
+let hasFirebaseService = false;
+
+// Check if Firebase is configured
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+};
+
+const hasFirebaseConfig = Object.values(firebaseConfig).every(value => value);
+
+if (hasFirebaseConfig) {
+  try {
+    // Import Firebase service dynamically
+    import('@/lib/firebaseService').then(module => {
+      firebaseService = module;
+      hasFirebaseService = true;
+    }).catch(error => {
+      console.log('Firebase service import failed:', error);
+    });
+  } catch (error) {
+    console.log('Firebase not configured, using fallback mode');
+  }
 }
 
 export function useHymns(organKey: string) {
@@ -35,7 +59,7 @@ export function useHymns(organKey: string) {
   // Load fallback data from JSON files
   useEffect(() => {
     const loadFallbackData = async () => {
-      if (!firebaseService && organKey) {
+      if (!hasFirebaseService && organKey) {
         setLoadingFallback(true);
         try {
           const response = await fetch(`/data/hymns/${organKey}.json`);
@@ -57,7 +81,7 @@ export function useHymns(organKey: string) {
   // Initialize offline data if Firebase is available
   useEffect(() => {
     const initializeData = async () => {
-      if (firebaseService && isOnline && !firebaseService.hasOfflineData() && !isInitialized) {
+      if (hasFirebaseService && isOnline && !firebaseService.hasOfflineData() && !isInitialized) {
         try {
           setIsInitialized(true);
           await firebaseService.initializeOfflineData();
@@ -83,7 +107,7 @@ export function useHymns(organKey: string) {
   const onlineQuery = useQuery({
     queryKey: ['hymns', organKey, 'online'],
     queryFn: async () => {
-      if (!firebaseService) {
+      if (!hasFirebaseService) {
         throw new Error('Firebase not configured');
       }
       
@@ -105,14 +129,14 @@ export function useHymns(organKey: string) {
       
       return await firebaseService.getHymnsByOrgan(organName);
     },
-    enabled: Boolean(firebaseService) && isOnline && Boolean(organKey),
+    enabled: hasFirebaseService && isOnline && Boolean(organKey),
     staleTime: 5 * 60 * 1000,
     retry: 1,
   });
 
   // Get offline data
   const getOfflineData = () => {
-    if (!firebaseService || !organKey) return [];
+    if (!hasFirebaseService || !organKey) return [];
     
     const organNameMap: Record<string, string> = {
       'coral': 'Coral',
@@ -136,7 +160,7 @@ export function useHymns(organKey: string) {
   let error = null;
   let hasOffline = false;
 
-  if (!firebaseService) {
+  if (!hasFirebaseService) {
     // Fallback mode - use JSON files
     hymns = fallbackData;
     isLoading = loadingFallback;

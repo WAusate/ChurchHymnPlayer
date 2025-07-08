@@ -3,12 +3,22 @@ import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff, Cloud, HardDrive, Database } from 'lucide-react';
 
 // Firebase service with fallback
-let firebaseService: any = null;
-try {
-  firebaseService = require('@/lib/firebaseService');
-} catch (error) {
-  console.log('Firebase not configured');
-}
+import * as firebaseStub from '@/lib/firebaseService.stub';
+
+let firebaseService: any = firebaseStub;
+let hasFirebaseService = false;
+
+// Check if Firebase is configured
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+};
+
+hasFirebaseService = Object.values(firebaseConfig).every(value => value);
 
 export default function FirebaseConnectionStatus() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -22,10 +32,8 @@ export default function FirebaseConnectionStatus() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    if (firebaseService) {
-      setHasOffline(firebaseService.hasOfflineData());
-      setLastSync(firebaseService.getLastSyncDate());
-    }
+    setHasOffline(firebaseService.hasOfflineData());
+    setLastSync(firebaseService.getLastSyncDate());
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -33,7 +41,7 @@ export default function FirebaseConnectionStatus() {
     };
   }, []);
 
-  if (!firebaseService) {
+  if (!hasFirebaseService) {
     return (
       <Badge variant="secondary" className="bg-gray-100 text-gray-800 border-gray-200">
         <Database className="w-3 h-3 mr-1" />
