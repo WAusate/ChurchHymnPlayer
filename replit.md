@@ -133,9 +133,14 @@ This is a church hymn management system built with a modern React frontend and E
 - `VITE_FIREBASE_MESSAGING_SENDER_ID`
 - `VITE_FIREBASE_APP_ID`
 
+### Troubleshooting
+If you see **"Missing or insufficient permissions"** when uploading a hymn:
+1. Review your Firebase Firestore and Storage security rules. During testing you can allow public write access.
+2. Ensure the value of `VITE_FIREBASE_STORAGE_BUCKET` in your `.env` file exactly matches the bucket name configured in Firebase.
+3. As an alternative, configure your rules to allow authenticated users and let the app sign in anonymously automatically.
+
 ## Changelog
 - July 08, 2025. Initial setup
 - July 08, 2025. Added Firebase Firestore and Storage integration with offline support
 
-## User Preferences
-Preferred communication style: Simple, everyday language.
+## User PreferencesPreferred communication style: Simple, everyday language.
