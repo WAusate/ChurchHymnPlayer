@@ -11,7 +11,7 @@ import {
   DocumentData
 } from 'firebase/firestore';
 import { ref, getDownloadURL, uploadBytes } from 'firebase/storage';
-import { db, storage } from './firebase';
+import { db, storage, authReady } from './firebase';
 
 // Firestore types
 export interface FirebaseHymn {
@@ -38,6 +38,7 @@ const HYMNS_COLLECTION = 'hinos';
  */
 export async function getAllHymns(): Promise<LocalHymn[]> {
   try {
+    await authReady;
     const querySnapshot = await getDocs(
       query(collection(db, HYMNS_COLLECTION), orderBy('numero', 'asc'))
     );
@@ -72,6 +73,7 @@ export async function getAllHymns(): Promise<LocalHymn[]> {
  */
 export async function getHymnsByOrgan(organName: string): Promise<LocalHymn[]> {
   try {
+    await authReady;
     const querySnapshot = await getDocs(
       query(
         collection(db, HYMNS_COLLECTION),
@@ -114,6 +116,7 @@ export async function addHymn(
   audioFile: File
 ): Promise<string> {
   try {
+    await authReady;
     // Get next hymn number
     const allHymns = await getDocs(collection(db, HYMNS_COLLECTION));
     const nextNumber = allHymns.size + 1;
