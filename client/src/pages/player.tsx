@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import Layout from "@/components/layout";
 import AudioPlayer from "@/components/audio-player";
+import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import { organs } from "@/lib/organs";
-import { HymnData } from "@shared/schema";
-import { useToast } from "@/hooks/use-toast";
+import { useHymnByIndex } from "@/hooks/use-hymns";
+import { Loader2 } from "lucide-react";
 
 interface PlayerProps {
   organKey: string;
@@ -13,56 +13,16 @@ interface PlayerProps {
 
 export default function Player({ organKey, hymnIndex }: PlayerProps) {
   const [, navigate] = useLocation();
-  const [hymn, setHymn] = useState<HymnData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
   const organ = organs.find((o) => o.key === organKey);
   const hymnIndexNum = parseInt(hymnIndex, 10);
-
-  useEffect(() => {
-    const loadHymn = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/data/hymns/${organKey}.json`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const hymns: HymnData[] = await response.json();
-        
-        if (hymnIndexNum >= 0 && hymnIndexNum < hymns.length) {
-          setHymn(hymns[hymnIndexNum]);
-        } else {
-          throw new Error("Hino não encontrado");
-        }
-      } catch (error) {
-        console.error("Error loading hymn:", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar o hino.",
-          variant: "destructive",
-        });
-        navigate(`/organ/${organKey}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (organKey && !isNaN(hymnIndexNum)) {
-      loadHymn();
-    }
-  }, [organKey, hymnIndexNum, navigate, toast]);
+  const { hymn, isLoading, error, isOnline } = useHymnByIndex(organKey, hymnIndexNum);
 
   const handleBack = () => {
     navigate(`/organ/${organKey}`);
   };
 
-  const handleAudioError = (error: string) => {
-    toast({
-      title: "Erro no Player",
-      description: error,
-      variant: "destructive",
-    });
+  const handleAudioError = (errorMessage: string) => {
+    console.error("Audio player error:", errorMessage);
   };
 
   if (!organ) {
@@ -79,7 +39,7 @@ export default function Player({ organKey, hymnIndex }: PlayerProps) {
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Layout 
         title="Carregando..."
@@ -87,8 +47,26 @@ export default function Player({ organKey, hymnIndex }: PlayerProps) {
         showBackButton={true}
         onBackClick={handleBack}
       >
-        <div className="max-w-2xl mx-auto text-center">
+        <div className="max-w-2xl mx-auto text-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-church-primary" />
           <p className="text-church-text">Carregando hino...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout 
+        title="Erro"
+        breadcrumbs={[organ.name, "Erro"]}
+        showBackButton={true}
+        onBackClick={handleBack}
+      >
+        <div className="max-w-2xl mx-auto text-center py-8">
+          <p className="text-church-text text-red-600">
+            Erro ao carregar hino. Verifique sua conexão.
+          </p>
         </div>
       </Layout>
     );
@@ -117,7 +95,17 @@ export default function Player({ organKey, hymnIndex }: PlayerProps) {
       onBackClick={handleBack}
     >
       <div className="max-w-2xl mx-auto">
+        <div className="mb-4 flex justify-end">
+          <FirebaseConnectionStatus />
+        </div>
         <AudioPlayer hymn={hymn} onError={handleAudioError} />
+        {!isOnline && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              ℹ️ Reproduzindo em modo offline
+            </p>
+          </div>
+        )}
       </div>
     </Layout>
   );

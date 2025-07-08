@@ -101,8 +101,38 @@ This is a church hymn management system built with a modern React frontend and E
 - Environment-specific configuration through process.env
 - Replit-specific development banner and cartographer integration
 
+## Firebase Integration
+
+### Firestore Structure
+- **Collection**: `hinos`
+- **Document Fields**:
+  - `numero` (number): Auto-generated hymn number
+  - `titulo` (string): Hymn title
+  - `orgao` (string): Organ name (Coral, Crianças, etc.)
+  - `audioPath` (string): Firebase Storage path to audio file
+  - `criadoEm` (timestamp): Creation timestamp
+
+### Firebase Storage Structure
+- **Root folder**: `hinos/`
+- Audio files are automatically named with pattern: `{organ}-{number}-{timestamp}.mp3`
+
+### Offline Functionality
+- App downloads all hymn data and audio URLs on first load
+- Data stored in localStorage for offline access
+- Connection status indicator shows online/offline state
+- Automatic fallback to offline data when connection is lost
+
+### Environment Variables Required
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+
 ## Changelog
 - July 08, 2025. Initial setup
+- July 08, 2025. Added Firebase Firestore and Storage integration with offline support
 
 ## User Preferences
 

@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Layout from "@/components/layout";
+import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import { organs } from "@/lib/organs";
-import { HymnData } from "@shared/schema";
-import { Play, ChevronRight } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useHymns } from "@/hooks/use-hymns";
+import { Play, ChevronRight, Loader2 } from "lucide-react";
 
 interface HymnListProps {
   organKey: string;
@@ -14,39 +13,8 @@ interface HymnListProps {
 
 export default function HymnList({ organKey }: HymnListProps) {
   const [, navigate] = useLocation();
-  const [hymns, setHymns] = useState<HymnData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
   const organ = organs.find((o) => o.key === organKey);
-
-  useEffect(() => {
-    const loadHymns = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/data/hymns/${organKey}.json`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setHymns(data);
-      } catch (error) {
-        console.error("Error loading hymns:", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar os hinos.",
-          variant: "destructive",
-        });
-        setHymns([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (organKey) {
-      loadHymns();
-    }
-  }, [organKey, toast]);
+  const { hymns, isLoading, error, isOnline, hasOfflineData } = useHymns(organKey);
 
   const handleHymnSelect = (hymnIndex: number) => {
     navigate(`/organ/${organKey}/hymn/${hymnIndex}`);
@@ -70,7 +38,7 @@ export default function HymnList({ organKey }: HymnListProps) {
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Layout 
         title={`Hinos do ${organ.name}`}
@@ -78,8 +46,26 @@ export default function HymnList({ organKey }: HymnListProps) {
         showBackButton={true}
         onBackClick={handleBack}
       >
-        <div className="text-center">
+        <div className="text-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-church-primary" />
           <p className="text-church-text">Carregando hinos...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error && !hasOfflineData) {
+    return (
+      <Layout 
+        title={`Hinos do ${organ.name}`}
+        breadcrumbs={[organ.name]}
+        showBackButton={true}
+        onBackClick={handleBack}
+      >
+        <div className="text-center py-8">
+          <p className="text-church-text text-red-600">
+            Erro ao carregar hinos. Verifique sua conexão.
+          </p>
         </div>
       </Layout>
     );
@@ -95,10 +81,16 @@ export default function HymnList({ organKey }: HymnListProps) {
       <div className="max-w-4xl mx-auto">
         <Card className="bg-white shadow-lg overflow-hidden">
           <div className="bg-church-primary p-6">
-            <h2 className="text-2xl font-bold text-white mb-2">
-              Hinos do {organ.name}
-            </h2>
-            <p className="text-church-light">Selecione um hino para reproduzir</p>
+            <div className="flex justify-between items-start mb-2">
+              <h2 className="text-2xl font-bold text-white">
+                Hinos do {organ.name}
+              </h2>
+              <FirebaseConnectionStatus />
+            </div>
+            <p className="text-church-light">
+              Selecione um hino para reproduzir
+              {!isOnline && hasOfflineData && " (modo offline)"}
+            </p>
           </div>
 
           <CardContent className="p-6">

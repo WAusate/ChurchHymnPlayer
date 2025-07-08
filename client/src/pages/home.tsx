@@ -37,12 +37,24 @@ export default function Home() {
     <Layout>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-church-primary mb-2">
-            Selecione o Órgão
-          </h2>
-          <p className="text-church-text opacity-75">
-            Escolha o órgão da igreja para acessar os hinos
-          </p>
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex-1">
+              <h2 className="text-3xl font-bold text-church-primary mb-2">
+                Selecione o Órgão
+              </h2>
+              <p className="text-church-text opacity-75">
+                Escolha o órgão da igreja para acessar os hinos
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/admin")}
+              className="border-church-secondary text-church-secondary hover:bg-church-secondary hover:text-white"
+            >
+              Admin
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">

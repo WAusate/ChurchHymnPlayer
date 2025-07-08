@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import HymnList from "@/pages/hymn-list";
 import Player from "@/pages/player";
+import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/organ/:organKey/hymn/:hymnIndex">
         {(params) => <Player organKey={params.organKey} hymnIndex={params.hymnIndex} />}
       </Route>
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );

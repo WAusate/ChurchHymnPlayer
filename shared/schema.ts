@@ -50,6 +50,15 @@ export type HymnData = {
   url: string;
 };
 
+// Firebase types
+export type FirebaseHymnData = {
+  numero: number;
+  titulo: string;
+  orgao: string;
+  audioUrl: string;
+  criadoEm: Date;
+};
+
 export type OrganData = {
   key: string;
   name: string;
