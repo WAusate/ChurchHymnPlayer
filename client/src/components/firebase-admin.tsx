@@ -70,11 +70,14 @@ export default function FirebaseAdmin() {
         fileInput.value = '';
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding hymn:', error);
       toast({
         title: "Erro",
-        description: "Erro ao adicionar hino. Verifique sua conexão e tente novamente.",
+        description:
+          typeof error?.message === 'string'
+            ? error.message
+            : 'Erro ao adicionar hino. Verifique sua conexão e tente novamente.',
         variant: "destructive",
       });
     } finally {

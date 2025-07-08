@@ -133,8 +133,12 @@ export async function addHymn(
     });
     
     return docRef.id;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error adding hymn:', error);
+    // Surface firebase error message when available
+    if (error && typeof error === 'object' && 'message' in error) {
+      throw new Error(`Erro ao adicionar hino: ${error.message}`);
+    }
     throw new Error('Erro ao adicionar hino');
   }
 }
