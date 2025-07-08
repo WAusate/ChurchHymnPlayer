@@ -24,8 +24,12 @@ export default function HymnList({ organKey }: HymnListProps) {
     const loadHymns = async () => {
       try {
         setLoading(true);
-        const response = await import(`@/data/hymns/${organKey}.json`);
-        setHymns(response.default);
+        const response = await fetch(`/data/hymns/${organKey}.json`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setHymns(data);
       } catch (error) {
         console.error("Error loading hymns:", error);
         toast({

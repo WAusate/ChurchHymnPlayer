@@ -24,8 +24,11 @@ export default function Player({ organKey, hymnIndex }: PlayerProps) {
     const loadHymn = async () => {
       try {
         setLoading(true);
-        const response = await import(`@/data/hymns/${organKey}.json`);
-        const hymns: HymnData[] = response.default;
+        const response = await fetch(`/data/hymns/${organKey}.json`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const hymns: HymnData[] = await response.json();
         
         if (hymnIndexNum >= 0 && hymnIndexNum < hymns.length) {
           setHymn(hymns[hymnIndexNum]);
