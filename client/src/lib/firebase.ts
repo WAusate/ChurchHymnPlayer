@@ -21,8 +21,12 @@ export const db = getFirestore(app);
 // Initialize Storage
 export const storage = getStorage(app);
 export const auth = getAuth(app);
+t57kza-codex/corrigir-erro-de-permissoes-ao-adicionar-hino
+// Sign in anonymously and expose promise to await authentication
+export const authReady = signInAnonymously(auth).catch((error) => {
 // Attempt anonymous sign-in so Storage rules requiring authentication pass
 signInAnonymously(auth).catch((error) => {
+main
   console.error('Anonymous sign-in failed:', error);
 });
 
