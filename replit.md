@@ -115,6 +115,20 @@ This is a church hymn management system built with a modern React frontend and E
 ### Firebase Storage Structure
 - **Root folder**: `hinos/`
 - Audio files are automatically named with pattern: `{organ}-{number}-{timestamp}.mp3`
+- Ensure your Firebase Storage rules allow authenticated read/write
+  or configure public uploads while testing. Also confirm the
+  `storageBucket` value in `.env` matches your project bucket name.
+- Example rules for development:
+  ```
+  rules_version = '2';
+  service firebase.storage {
+    match /b/{bucket}/o {
+      match /hinos/{allPaths=**} {
+        allow read, write: if request.auth != null;
+      }
+    }
+  }
+  ```
 
 ### Offline Functionality
 - App downloads all hymn data and audio URLs on first load
@@ -135,5 +149,4 @@ This is a church hymn management system built with a modern React frontend and E
 - July 08, 2025. Added Firebase Firestore and Storage integration with offline support
 
 ## User Preferences
-
 Preferred communication style: Simple, everyday language.

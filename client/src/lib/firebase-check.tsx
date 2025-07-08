@@ -26,7 +26,10 @@ export function useFirebaseConfigCheck(): FirebaseConfigStatus {
       'VITE_FIREBASE_APP_ID'
     ];
 
-    const missingVars = requiredVars.filter(varName => !import.meta.env[varName]);
+    const missingVars = requiredVars.filter(varName => {
+      const value = import.meta.env[varName];
+      return !value || value.startsWith('your_');
+    });
     const hasConfig = missingVars.length === 0;
 
     setStatus({
