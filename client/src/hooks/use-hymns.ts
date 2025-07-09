@@ -19,7 +19,9 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const hasFirebaseConfig = Object.values(firebaseConfig).every(value => value);
+const hasFirebaseConfig = Object.values(firebaseConfig).every(
+  value => value && !String(value).startsWith('your_')
+);
 
 if (hasFirebaseConfig) {
   try {
