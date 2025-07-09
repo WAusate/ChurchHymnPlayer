@@ -41,6 +41,6 @@ if (isFirebaseConfigured) {
   console.warn('Firebase not configured. Running in offline mode.');
 }
 
-export { app, db, storage, auth, authReady, isFirebaseConfigured };
+export { app, db, storage, auth, authReady };
 
 export default app;
