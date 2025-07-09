@@ -12,19 +12,35 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const isFirebaseConfigured = Object.values(firebaseConfig).every(
+  value => value && !String(value).startsWith('your_')
+);
 
-// Initialize Firestore
-export const db = getFirestore(app);
+let app: ReturnType<typeof initializeApp> | undefined;
+let db: ReturnType<typeof getFirestore> | undefined;
+let storage: ReturnType<typeof getStorage> | undefined;
+let auth: ReturnType<typeof getAuth> | undefined;
+let authReady: Promise<unknown> | undefined;
 
-// Initialize Storage
-export const storage = getStorage(app);
-export const auth = getAuth(app);
+if (isFirebaseConfigured) {
+  // Initialize Firebase
+  app = initializeApp(firebaseConfig);
 
-// Sign in anonymously and expose promise to await authentication
-export const authReady = signInAnonymously(auth).catch((error) => {
-  console.error('Anonymous sign-in failed:', error);
-});
+  // Initialize Firestore
+  db = getFirestore(app);
+
+  // Initialize Storage
+  storage = getStorage(app);
+  auth = getAuth(app);
+
+  // Sign in anonymously and expose promise to await authentication
+  authReady = signInAnonymously(auth).catch(error => {
+    console.error('Anonymous sign-in failed:', error);
+  });
+} else {
+  console.warn('Firebase not configured. Running in offline mode.');
+}
+
+export { app, db, storage, auth, authReady, isFirebaseConfigured };
 
 export default app;

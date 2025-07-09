@@ -24,7 +24,9 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-hasFirebaseService = Object.values(firebaseConfig).every(value => value);
+hasFirebaseService = Object.values(firebaseConfig).every(
+  value => value && !String(value).startsWith('your_')
+);
 
 export default function Admin() {
   const [isSyncing, setIsSyncing] = useState(false);
