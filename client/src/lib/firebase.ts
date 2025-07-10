@@ -34,8 +34,12 @@ if (isFirebaseConfigured) {
   auth = getAuth(app);
 
   // Sign in anonymously and expose promise to await authentication
-  authReady = signInAnonymously(auth).catch(error => {
+  authReady = signInAnonymously(auth).then(() => {
+    console.log('Firebase authentication successful');
+  }).catch(error => {
     console.error('Anonymous sign-in failed:', error);
+    // Still resolve the promise to allow offline mode
+    return Promise.resolve();
   });
 } else {
   console.warn('Firebase not configured. Running in offline mode.');

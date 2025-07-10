@@ -12,7 +12,7 @@ import {
   DocumentData
 } from 'firebase/firestore';
 import { ref, getDownloadURL, uploadBytes, uploadBytesResumable } from 'firebase/storage';
-import { db, storage, authReady } from './firebase';
+import { db, storage, auth, authReady } from './firebase';
 
 // Firestore types
 export interface FirebaseHymn {
@@ -118,52 +118,93 @@ export async function addHymn(
   progressCallback?: (progress: number, status: string) => void
 ): Promise<string> {
   try {
+    progressCallback?.(5, 'Verificando autenticação...');
     await authReady;
     
-    // Get next hymn number for this specific organ
-    const organHymns = await getDocs(
-      query(
-        collection(db, HYMNS_COLLECTION),
-        where('orgao', '==', orgao),
-        orderBy('numero', 'desc'),
-        limit(1)
-      )
-    );
+    // Check if user is authenticated
+    if (!auth.currentUser) {
+      throw new Error('Usuário não autenticado. Recarregue a página e tente novamente.');
+    }
     
+    progressCallback?.(10, 'Calculando número do hino...');
+    
+    // Get next hymn number for this specific organ with better error handling
     let nextNumber = 1;
-    if (!organHymns.empty) {
-      const lastHymn = organHymns.docs[0].data() as FirebaseHymn;
-      nextNumber = lastHymn.numero + 1;
+    try {
+      const organHymns = await getDocs(
+        query(
+          collection(db, HYMNS_COLLECTION),
+          where('orgao', '==', orgao),
+          orderBy('numero', 'desc'),
+          limit(1)
+        )
+      );
+      
+      if (!organHymns.empty) {
+        const lastHymn = organHymns.docs[0].data() as FirebaseHymn;
+        nextNumber = lastHymn.numero + 1;
+      }
+    } catch (queryError) {
+      console.warn('Error getting hymn number, using default:', queryError);
+      // Fallback: try to get all hymns for this organ and count
+      try {
+        const allOrganHymns = await getDocs(
+          query(collection(db, HYMNS_COLLECTION), where('orgao', '==', orgao))
+        );
+        nextNumber = allOrganHymns.size + 1;
+      } catch (fallbackError) {
+        console.warn('Fallback query failed, using random number:', fallbackError);
+        nextNumber = Math.floor(Math.random() * 9000) + 1000; // Random 4-digit number
+      }
     }
     
     // Upload audio file to Storage with progress tracking
     const audioPath = `hinos/${orgao.toLowerCase().replace(/\s+/g, '-')}-${nextNumber}-${Date.now()}.mp3`;
     const audioRef = ref(storage, audioPath);
     
-    progressCallback?.(10, 'Preparando upload...');
+    progressCallback?.(15, 'Iniciando upload do arquivo...');
     
-    // Use uploadBytesResumable for progress tracking
-    const uploadTask = uploadBytesResumable(audioRef, audioFile);
-    
-    await new Promise<void>((resolve, reject) => {
+    // Add timeout and better error handling for upload
+    const uploadPromise = new Promise<void>((resolve, reject) => {
+      const uploadTask = uploadBytesResumable(audioRef, audioFile);
+      
+      // Set timeout for upload (5 minutes)
+      const timeout = setTimeout(() => {
+        uploadTask.cancel();
+        reject(new Error('Upload interrompido por timeout (5 minutos)'));
+      }, 5 * 60 * 1000);
+      
       uploadTask.on('state_changed',
         (snapshot) => {
           // Progress monitoring
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 70 + 10; // 10-80%
-          progressCallback?.(progress, `Enviando arquivo... ${Math.round(progress)}%`);
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 65 + 15; // 15-80%
+          progressCallback?.(progress, `Enviando arquivo... ${Math.round(progress - 15)}%`);
         },
         (error) => {
           // Handle errors
+          clearTimeout(timeout);
           console.error('Upload error:', error);
-          reject(new Error('Falha no upload do arquivo de áudio'));
+          
+          if (error.code === 'storage/unauthorized') {
+            reject(new Error('Sem permissão para upload. Verifique as regras do Firebase Storage.'));
+          } else if (error.code === 'storage/canceled') {
+            reject(new Error('Upload cancelado.'));
+          } else if (error.code === 'storage/unknown') {
+            reject(new Error('Erro desconhecido no upload. Verifique sua conexão.'));
+          } else {
+            reject(new Error(`Erro no upload: ${error.message || 'Erro desconhecido'}`));
+          }
         },
         () => {
           // Upload completed successfully
+          clearTimeout(timeout);
           progressCallback?.(80, 'Upload do arquivo concluído');
           resolve();
         }
       );
     });
+    
+    await uploadPromise;
     
     // Add hymn document to Firestore
     progressCallback?.(85, 'Salvando informações do hino...');
