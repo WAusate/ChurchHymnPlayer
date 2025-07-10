@@ -2,14 +2,16 @@ import {
   collection,
   doc,
   getDocs,
+  addDoc,
   query,
   where,
   orderBy,
+  limit,
   Timestamp,
   QuerySnapshot,
   DocumentData
 } from 'firebase/firestore';
-import { ref, getDownloadURL } from 'firebase/storage';
+import { ref, getDownloadURL, uploadBytes, uploadBytesResumable, deleteObject } from 'firebase/storage';
 import { db, storage, auth, authReady } from './firebase';
 import { 
   uploadFileToStorage, 
