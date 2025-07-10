@@ -54,17 +54,36 @@ export async function getAllHymns(): Promise<LocalHymn[]> {
     for (const docSnap of querySnapshot.docs) {
       const data = docSnap.data() as FirebaseHymn;
       
-      // Get download URL for audio file
-      const audioRef = ref(storage, data.audioPath);
-      const audioUrl = await getDownloadURL(audioRef);
-      
-      hymns.push({
-        numero: data.numero,
-        titulo: data.titulo,
-        orgao: data.orgao,
-        audioUrl,
-        criadoEm: data.criadoEm.toDate()
-      });
+      try {
+        // Get download URL for audio file using improved method
+        let audioUrl: string;
+        
+        if (data.audioPath.startsWith('http')) {
+          // If it's already a full URL, use it directly
+          audioUrl = data.audioPath;
+        } else {
+          // Use our improved getDownloadUrl function
+          audioUrl = await getDownloadUrl(data.audioPath);
+        }
+        
+        hymns.push({
+          numero: data.numero,
+          titulo: data.titulo,
+          orgao: data.orgao,
+          audioUrl,
+          criadoEm: data.criadoEm.toDate()
+        });
+      } catch (urlError) {
+        console.warn(`Failed to get URL for hymn ${data.numero}:`, urlError);
+        // Still add the hymn but without working audio URL
+        hymns.push({
+          numero: data.numero,
+          titulo: data.titulo,
+          orgao: data.orgao,
+          audioUrl: '', // Empty URL will be handled by the audio player
+          criadoEm: data.criadoEm.toDate()
+        });
+      }
     }
     
     return hymns;
@@ -93,17 +112,36 @@ export async function getHymnsByOrgan(organName: string): Promise<LocalHymn[]> {
     for (const docSnap of querySnapshot.docs) {
       const data = docSnap.data() as FirebaseHymn;
       
-      // Get download URL for audio file
-      const audioRef = ref(storage, data.audioPath);
-      const audioUrl = await getDownloadURL(audioRef);
-      
-      hymns.push({
-        numero: data.numero,
-        titulo: data.titulo,
-        orgao: data.orgao,
-        audioUrl,
-        criadoEm: data.criadoEm.toDate()
-      });
+      try {
+        // Get download URL for audio file using improved method
+        let audioUrl: string;
+        
+        if (data.audioPath.startsWith('http')) {
+          // If it's already a full URL, use it directly
+          audioUrl = data.audioPath;
+        } else {
+          // Use our improved getDownloadUrl function
+          audioUrl = await getDownloadUrl(data.audioPath);
+        }
+        
+        hymns.push({
+          numero: data.numero,
+          titulo: data.titulo,
+          orgao: data.orgao,
+          audioUrl,
+          criadoEm: data.criadoEm.toDate()
+        });
+      } catch (urlError) {
+        console.warn(`Failed to get URL for hymn ${data.numero} (${organName}):`, urlError);
+        // Still add the hymn but without working audio URL
+        hymns.push({
+          numero: data.numero,
+          titulo: data.titulo,
+          orgao: data.orgao,
+          audioUrl: '', // Empty URL will be handled by the audio player
+          criadoEm: data.criadoEm.toDate()
+        });
+      }
     }
     
     return hymns;
@@ -198,25 +236,21 @@ export async function addHymn(
       }
     }
     
-    // Refresh offline data after successful addition
     progressCallback?.(95, 'Atualizando dados locais...');
+    
+    // Trigger hymn list refresh
     try {
-      await initializeOfflineData();
-    } catch (offlineError) {
-      console.warn('Failed to refresh offline data:', offlineError);
+      await refreshOfflineData();
+    } catch (error) {
+      console.warn('Failed to refresh offline data:', error);
     }
     
     progressCallback?.(100, 'Hino adicionado com sucesso!');
+    
     return docId;
   } catch (error: any) {
     console.error('Error adding hymn:', error);
-    
-    // Surface specific error messages
-    if (error.message) {
-      throw error; // Re-throw with original message
-    }
-    
-    throw new Error('Erro ao adicionar hino');
+    throw new Error(error.message || 'Erro ao adicionar hino');
   }
 }
 
@@ -225,17 +259,60 @@ export async function addHymn(
  */
 export async function initializeOfflineData(): Promise<void> {
   try {
-    const hymns = await getAllHymns();
+    await authReady;
     
-    // Store hymns data in localStorage
-    localStorage.setItem('hymns_data', JSON.stringify(hymns));
+    // Use REST API to get all hymns
+    const firestoreHymns = await getDocumentsFromFirestore(HYMNS_COLLECTION);
+    
+    // Convert to LocalHymn format with proper URLs
+    const localHymns: LocalHymn[] = [];
+    
+    for (const hymn of firestoreHymns) {
+      try {
+        let audioUrl: string;
+        
+        if (hymn.audioPath.startsWith('http')) {
+          audioUrl = hymn.audioPath;
+        } else {
+          audioUrl = await getDownloadUrl(hymn.audioPath);
+        }
+        
+        localHymns.push({
+          numero: hymn.numero,
+          titulo: hymn.titulo,
+          orgao: hymn.orgao,
+          audioUrl,
+          criadoEm: hymn.criadoEm
+        });
+      } catch (urlError) {
+        console.warn(`Failed to get URL for hymn ${hymn.numero}:`, urlError);
+        // Still add the hymn but without working audio URL
+        localHymns.push({
+          numero: hymn.numero,
+          titulo: hymn.titulo,
+          orgao: hymn.orgao,
+          audioUrl: '',
+          criadoEm: hymn.criadoEm
+        });
+      }
+    }
+    
+    // Store in localStorage
+    localStorage.setItem('hymns_offline_data', JSON.stringify(localHymns));
     localStorage.setItem('hymns_last_sync', new Date().toISOString());
     
-    console.log(`Initialized offline data with ${hymns.length} hymns`);
+    console.log('Offline data initialized with', localHymns.length, 'hymns');
   } catch (error) {
     console.error('Error initializing offline data:', error);
-    throw error;
+    throw new Error('Erro ao inicializar dados offline');
   }
+}
+
+/**
+ * Refresh offline data with latest from Firestore
+ */
+export async function refreshOfflineData(): Promise<void> {
+  await initializeOfflineData();
 }
 
 /**
@@ -243,14 +320,10 @@ export async function initializeOfflineData(): Promise<void> {
  */
 export function getOfflineHymns(): LocalHymn[] {
   try {
-    const data = localStorage.getItem('hymns_data');
-    if (!data) {
-      return [];
-    }
+    const data = localStorage.getItem('hymns_offline_data');
+    if (!data) return [];
     
-    const hymns = JSON.parse(data) as LocalHymn[];
-    // Convert date strings back to Date objects
-    return hymns.map(hymn => ({
+    return JSON.parse(data).map((hymn: any) => ({
       ...hymn,
       criadoEm: new Date(hymn.criadoEm)
     }));
@@ -264,21 +337,25 @@ export function getOfflineHymns(): LocalHymn[] {
  * Get hymns by organ from local storage (offline mode)
  */
 export function getOfflineHymnsByOrgan(organName: string): LocalHymn[] {
-  const allHymns = getOfflineHymns();
-  return allHymns.filter(hymn => hymn.orgao === organName);
+  return getOfflineHymns().filter(hymn => hymn.orgao === organName);
 }
 
 /**
  * Check if offline data is available
  */
 export function hasOfflineData(): boolean {
-  return localStorage.getItem('hymns_data') !== null;
+  return localStorage.getItem('hymns_offline_data') !== null;
 }
 
 /**
  * Check when was the last sync
  */
 export function getLastSyncDate(): Date | null {
-  const lastSync = localStorage.getItem('hymns_last_sync');
-  return lastSync ? new Date(lastSync) : null;
+  try {
+    const lastSync = localStorage.getItem('hymns_last_sync');
+    return lastSync ? new Date(lastSync) : null;
+  } catch (error) {
+    console.error('Error getting last sync date:', error);
+    return null;
+  }
 }

@@ -33,57 +33,89 @@ export async function uploadFileToStorage(
   path: string,
   progressCallback?: (progress: number) => void
 ): Promise<string> {
-  const token = await getAuthToken();
-  
-  const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o?name=${encodeURIComponent(path)}`;
-  
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
+  try {
+    const token = await getAuthToken();
     
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) {
-        const progress = (e.loaded / e.total) * 100;
-        progressCallback?.(progress);
-      }
+    // Clean and format the storage bucket name
+    const cleanBucket = STORAGE_BUCKET.replace('.appspot.com', '');
+    const cleanPath = path.startsWith('hinos/') ? path : `hinos/${path}`;
+    
+    const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/${cleanBucket}.appspot.com/o?name=${encodeURIComponent(cleanPath)}`;
+    
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const progress = (e.loaded / e.total) * 100;
+          progressCallback?.(progress);
+        }
+      });
+      
+      xhr.addEventListener('load', () => {
+        try {
+          if (xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response.name || cleanPath);
+          } else {
+            const errorText = xhr.responseText || xhr.statusText;
+            console.error('Upload error response:', errorText);
+            reject(new Error(`Upload failed: ${xhr.status} ${errorText}`));
+          }
+        } catch (parseError) {
+          console.error('Error parsing upload response:', parseError);
+          reject(new Error('Invalid response from upload server'));
+        }
+      });
+      
+      xhr.addEventListener('error', () => {
+        reject(new Error('Upload failed due to network error'));
+      });
+      
+      xhr.addEventListener('timeout', () => {
+        reject(new Error('Upload timeout'));
+      });
+      
+      xhr.open('POST', uploadUrl);
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      xhr.setRequestHeader('Content-Type', file.type);
+      xhr.timeout = 60000; // 60 second timeout
+      xhr.send(file);
     });
-    
-    xhr.addEventListener('load', () => {
-      if (xhr.status === 200) {
-        const response = JSON.parse(xhr.responseText);
-        resolve(response.name);
-      } else {
-        reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
-      }
-    });
-    
-    xhr.addEventListener('error', () => {
-      reject(new Error('Upload failed due to network error'));
-    });
-    
-    xhr.open('POST', uploadUrl);
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    xhr.setRequestHeader('Content-Type', file.type);
-    xhr.send(file);
-  });
+  } catch (error) {
+    console.error('Error in uploadFileToStorage:', error);
+    throw new Error(`Upload setup failed: ${error.message}`);
+  }
 }
 
 // Get download URL for uploaded file
 export async function getDownloadUrl(storagePath: string): Promise<string> {
-  const token = await getAuthToken();
-  
-  const url = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(storagePath)}?alt=media`;
-  
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${token}`
+  try {
+    // Remove bucket suffix if present and ensure proper format
+    const cleanBucket = STORAGE_BUCKET.replace('.appspot.com', '');
+    const cleanPath = storagePath.startsWith('hinos/') ? storagePath : `hinos/${storagePath}`;
+    
+    // For public files, we can use the media URL directly
+    const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${cleanBucket}.appspot.com/o/${encodeURIComponent(cleanPath)}?alt=media`;
+    
+    // Test if the URL is accessible
+    const response = await fetch(publicUrl, { method: 'HEAD' });
+    
+    if (response.ok) {
+      return publicUrl;
+    } else {
+      // If public access fails, try with auth token
+      const token = await getAuthToken();
+      const authUrl = `https://firebasestorage.googleapis.com/v0/b/${cleanBucket}.appspot.com/o/${encodeURIComponent(cleanPath)}?alt=media&token=${token}`;
+      return authUrl;
     }
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to get download URL: ${response.status}`);
+  } catch (error) {
+    console.error('Error getting download URL:', error);
+    // Fallback to direct URL construction
+    const cleanBucket = STORAGE_BUCKET.replace('.appspot.com', '');
+    const cleanPath = storagePath.startsWith('hinos/') ? storagePath : `hinos/${storagePath}`;
+    return `https://firebasestorage.googleapis.com/v0/b/${cleanBucket}.appspot.com/o/${encodeURIComponent(cleanPath)}?alt=media`;
   }
-  
-  return url;
 }
 
 // Add document to Firestore using REST API
