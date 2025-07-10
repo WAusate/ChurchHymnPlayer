@@ -42,6 +42,7 @@ export function useHymns(organKey: string) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [fallbackData, setFallbackData] = useState<HymnData[]>([]);
   const [loadingFallback, setLoadingFallback] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { toast } = useToast();
 
   // Monitor online status
@@ -55,6 +56,19 @@ export function useHymns(organKey: string) {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Listen for hymn-added events to trigger refresh
+  useEffect(() => {
+    const handleHymnAdded = (event: CustomEvent) => {
+      setRefreshTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('hymn-added', handleHymnAdded as EventListener);
+
+    return () => {
+      window.removeEventListener('hymn-added', handleHymnAdded as EventListener);
     };
   }, []);
 
@@ -107,7 +121,7 @@ export function useHymns(organKey: string) {
 
   // Query for online data (only if Firebase is available)
   const onlineQuery = useQuery({
-    queryKey: ['hymns', organKey, 'online'],
+    queryKey: ['hymns', organKey, 'online', refreshTrigger],
     queryFn: async () => {
       if (!hasFirebaseService) {
         throw new Error('Firebase not configured');
@@ -132,8 +146,8 @@ export function useHymns(organKey: string) {
       return await firebaseService.getHymnsByOrgan(organName);
     },
     enabled: hasFirebaseService && isOnline && Boolean(organKey),
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
+    staleTime: 0, // Don't cache to always get fresh data
+    retry: 3,
   });
 
   // Get offline data

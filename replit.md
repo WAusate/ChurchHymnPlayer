@@ -147,5 +147,8 @@ main
 ## Changelog
 - July 08, 2025. Initial setup
 - July 08, 2025. Added Firebase Firestore and Storage integration with offline support
+- July 10, 2025. Successfully migrated project from Replit Agent to Replit environment
+- July 10, 2025. Enhanced Firebase integration with retry logic and automatic hymn number generation
+- July 10, 2025. Added automatic hymn list refresh after new hymn addition
 
 ## User PreferencesPreferred communication style: Simple, everyday language.

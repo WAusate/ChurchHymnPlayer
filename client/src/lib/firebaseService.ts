@@ -117,27 +117,90 @@ export async function addHymn(
 ): Promise<string> {
   try {
     await authReady;
-    // Get next hymn number
-    const allHymns = await getDocs(collection(db, HYMNS_COLLECTION));
-    const nextNumber = allHymns.size + 1;
     
-    // Upload audio file to Storage
-    const audioPath = `hinos/${orgao.toLowerCase()}-${nextNumber}-${Date.now()}.mp3`;
+    // Get next hymn number for this specific organ
+    const organHymns = await getDocs(
+      query(
+        collection(db, HYMNS_COLLECTION),
+        where('orgao', '==', orgao),
+        orderBy('numero', 'desc'),
+        limit(1)
+      )
+    );
+    
+    let nextNumber = 1;
+    if (!organHymns.empty) {
+      const lastHymn = organHymns.docs[0].data() as FirebaseHymn;
+      nextNumber = lastHymn.numero + 1;
+    }
+    
+    // Upload audio file to Storage with retry logic
+    const audioPath = `hinos/${orgao.toLowerCase().replace(/\s+/g, '-')}-${nextNumber}-${Date.now()}.mp3`;
     const audioRef = ref(storage, audioPath);
-    await uploadBytes(audioRef, audioFile);
     
-    // Add hymn document to Firestore
-    const docRef = await addDoc(collection(db, HYMNS_COLLECTION), {
-      numero: nextNumber,
-      titulo,
-      orgao,
-      audioPath,
-      criadoEm: Timestamp.now()
-    });
+    let uploadAttempts = 0;
+    const maxAttempts = 3;
     
-    return docRef.id;
+    while (uploadAttempts < maxAttempts) {
+      try {
+        await uploadBytes(audioRef, audioFile);
+        break;
+      } catch (uploadError) {
+        uploadAttempts++;
+        if (uploadAttempts >= maxAttempts) {
+          throw new Error('Falha no upload do arquivo de áudio após várias tentativas');
+        }
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000 * uploadAttempts));
+      }
+    }
+    
+    // Add hymn document to Firestore with retry logic
+    let docAttempts = 0;
+    let docRef;
+    
+    while (docAttempts < maxAttempts) {
+      try {
+        docRef = await addDoc(collection(db, HYMNS_COLLECTION), {
+          numero: nextNumber,
+          titulo,
+          orgao,
+          audioPath,
+          criadoEm: Timestamp.now()
+        });
+        break;
+      } catch (docError) {
+        docAttempts++;
+        if (docAttempts >= maxAttempts) {
+          throw new Error('Falha ao salvar hino no banco de dados após várias tentativas');
+        }
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000 * docAttempts));
+      }
+    }
+    
+    // Refresh offline data after successful addition
+    try {
+      await initializeOfflineData();
+    } catch (offlineError) {
+      console.warn('Failed to refresh offline data:', offlineError);
+    }
+    
+    return docRef!.id;
   } catch (error: any) {
     console.error('Error adding hymn:', error);
+    
+    // Provide more specific error messages
+    if (error?.code === 'permission-denied') {
+      throw new Error('Sem permissão para adicionar hino. Verifique as configurações do Firebase.');
+    } else if (error?.code === 'unavailable') {
+      throw new Error('Firebase temporariamente indisponível. Tente novamente em alguns minutos.');
+    } else if (error?.code === 'deadline-exceeded') {
+      throw new Error('Tempo limite excedido. Verifique sua conexão com a internet.');
+    } else if (error?.message?.includes('network')) {
+      throw new Error('Erro de conexão. Verifique sua internet e tente novamente.');
+    }
+    
     // Surface firebase error message when available
     if (error && typeof error === 'object' && 'message' in error) {
       throw new Error(`Erro ao adicionar hino: ${error.message}`);

@@ -52,7 +52,7 @@ export default function FirebaseAdmin() {
     setIsUploading(true);
     
     try {
-      await addHymn(titulo, orgao, audioFile);
+      const docId = await addHymn(titulo, orgao, audioFile);
       
       toast({
         title: "Sucesso",
@@ -69,6 +69,12 @@ export default function FirebaseAdmin() {
       if (fileInput) {
         fileInput.value = '';
       }
+      
+      // Trigger a refresh of hymn data in the parent component
+      // This will update the hymn list automatically
+      window.dispatchEvent(new CustomEvent('hymn-added', { 
+        detail: { docId, orgao } 
+      }));
       
     } catch (error: any) {
       console.error('Error adding hymn:', error);
