@@ -11,7 +11,7 @@ import {
   QuerySnapshot,
   DocumentData
 } from 'firebase/firestore';
-import { ref, getDownloadURL, uploadBytes, uploadBytesResumable } from 'firebase/storage';
+import { ref, getDownloadURL, uploadBytes, uploadBytesResumable, deleteObject } from 'firebase/storage';
 import { db, storage, auth, authReady } from './firebase';
 
 // Firestore types
@@ -206,16 +206,53 @@ export async function addHymn(
     
     await uploadPromise;
     
-    // Add hymn document to Firestore
+    // Add hymn document to Firestore with retry logic
     progressCallback?.(85, 'Salvando informações do hino...');
     
-    const docRef = await addDoc(collection(db, HYMNS_COLLECTION), {
-      numero: nextNumber,
-      titulo,
-      orgao,
-      audioPath,
-      criadoEm: Timestamp.now()
-    });
+    let docRef;
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+      try {
+        docRef = await addDoc(collection(db, HYMNS_COLLECTION), {
+          numero: nextNumber,
+          titulo,
+          orgao,
+          audioPath,
+          criadoEm: Timestamp.now()
+        });
+        break; // Success, exit loop
+      } catch (firestoreError: any) {
+        attempts++;
+        console.error(`Firestore attempt ${attempts} failed:`, firestoreError);
+        
+        if (attempts >= maxAttempts) {
+          // If all attempts failed, try to clean up the uploaded file
+          try {
+            const uploadedRef = ref(storage, audioPath);
+            await deleteObject(uploadedRef);
+            console.log('Cleaned up uploaded file after Firestore failure');
+          } catch (cleanupError) {
+            console.warn('Could not clean up uploaded file:', cleanupError);
+          }
+          
+          if (firestoreError.code === 'unavailable') {
+            throw new Error('Firebase Firestore está temporariamente indisponível. Tente novamente em alguns minutos.');
+          } else if (firestoreError.code === 'permission-denied') {
+            throw new Error('Sem permissão para salvar no Firestore. Verifique as regras do Firebase.');
+          } else if (firestoreError.code === 'deadline-exceeded') {
+            throw new Error('Tempo limite esgotado ao salvar no Firestore. Verifique sua conexão.');
+          } else {
+            throw new Error(`Erro ao salvar no Firestore: ${firestoreError.message || 'Erro desconhecido'}`);
+          }
+        }
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts - 1)));
+        progressCallback?.(85, `Tentativa ${attempts + 1} de salvar hino...`);
+      }
+    }
     
     // Refresh offline data after successful addition
     progressCallback?.(95, 'Atualizando dados locais...');

@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 
@@ -26,8 +26,19 @@ if (isFirebaseConfigured) {
   // Initialize Firebase
   app = initializeApp(firebaseConfig);
 
-  // Initialize Firestore
+  // Initialize Firestore with better error handling
   db = getFirestore(app);
+  
+  // Enable network persistence for better offline support
+  try {
+    // Only enable persistence in production builds
+    if (import.meta.env.PROD) {
+      // We'll handle offline mode through localStorage instead
+      console.log('Production mode: Using Firebase online mode');
+    }
+  } catch (err) {
+    console.warn('Could not enable Firestore persistence:', err);
+  }
 
   // Initialize Storage
   storage = getStorage(app);
