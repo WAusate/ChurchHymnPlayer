@@ -17,7 +17,14 @@ async function getAuthToken(): Promise<string> {
   if (!auth?.currentUser) {
     throw new Error('User not authenticated');
   }
-  return await auth.currentUser.getIdToken();
+  try {
+    const token = await auth.currentUser.getIdToken(true); // Force refresh
+    console.log('Auth token obtained successfully');
+    return token;
+  } catch (error) {
+    console.error('Failed to get auth token:', error);
+    throw new Error('Failed to get authentication token');
+  }
 }
 
 // Upload file to Firebase Storage using REST API
@@ -84,37 +91,48 @@ export async function addDocumentToFirestore(
   collection: string,
   data: any
 ): Promise<string> {
-  const token = await getAuthToken();
-  
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collection}`;
-  
-  // Convert data to Firestore format
-  const firestoreData = {
-    fields: {
-      numero: { integerValue: data.numero.toString() },
-      titulo: { stringValue: data.titulo },
-      orgao: { stringValue: data.orgao },
-      audioPath: { stringValue: data.audioPath },
-      criadoEm: { timestampValue: new Date().toISOString() }
+  try {
+    const token = await getAuthToken();
+    console.log('Adding document to collection:', collection, 'Data:', data);
+    
+    const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collection}`;
+    
+    // Convert data to Firestore format
+    const firestoreData = {
+      fields: {
+        numero: { integerValue: data.numero.toString() },
+        titulo: { stringValue: data.titulo },
+        orgao: { stringValue: data.orgao },
+        audioPath: { stringValue: data.audioPath },
+        criadoEm: { timestampValue: new Date().toISOString() }
+      }
+    };
+    
+    console.log('Firestore payload:', JSON.stringify(firestoreData, null, 2));
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(firestoreData)
+    });
+    
+    const responseText = await response.text();
+    console.log('Firestore response status:', response.status);
+    console.log('Firestore response text:', responseText);
+    
+    if (!response.ok) {
+      throw new Error(`Firestore write failed: ${response.status} - ${responseText}`);
     }
-  };
-  
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(firestoreData)
-  });
-  
-  if (!response.ok) {
-    const errorData = await response.text();
-    throw new Error(`Firestore write failed: ${response.status} ${errorData}`);
+    
+    const result = JSON.parse(responseText);
+    return result.name.split('/').pop(); // Extract document ID
+  } catch (error) {
+    console.error('Error in addDocumentToFirestore:', error);
+    throw error;
   }
-  
-  const result = await response.json();
-  return result.name.split('/').pop(); // Extract document ID
 }
 
 // Get documents from Firestore using REST API
@@ -123,51 +141,69 @@ export async function getDocumentsFromFirestore(
   orderBy?: string,
   where?: { field: string; op: string; value: any }
 ): Promise<any[]> {
-  const token = await getAuthToken();
-  
-  let url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collection}`;
-  
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${token}`
+  try {
+    const token = await getAuthToken();
+    console.log('Getting documents from collection:', collection);
+    
+    let url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collection}`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Firestore read error:', response.status, errorText);
+      throw new Error(`Firestore read failed: ${response.status} - ${errorText}`);
     }
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Firestore read failed: ${response.status}`);
+    
+    const result = await response.json();
+    console.log('Firestore response:', result);
+    
+    if (!result.documents) {
+      return [];
+    }
+    
+    // Convert Firestore format to regular objects
+    return result.documents.map((doc: any) => ({
+      id: doc.name.split('/').pop(),
+      numero: parseInt(doc.fields.numero.integerValue),
+      titulo: doc.fields.titulo.stringValue,
+      orgao: doc.fields.orgao.stringValue,
+      audioPath: doc.fields.audioPath.stringValue,
+      criadoEm: new Date(doc.fields.criadoEm.timestampValue)
+    }));
+  } catch (error) {
+    console.error('Error in getDocumentsFromFirestore:', error);
+    throw error;
   }
-  
-  const result = await response.json();
-  
-  if (!result.documents) {
-    return [];
-  }
-  
-  // Convert Firestore format to regular objects
-  return result.documents.map((doc: any) => ({
-    id: doc.name.split('/').pop(),
-    numero: parseInt(doc.fields.numero.integerValue),
-    titulo: doc.fields.titulo.stringValue,
-    orgao: doc.fields.orgao.stringValue,
-    audioPath: doc.fields.audioPath.stringValue,
-    criadoEm: new Date(doc.fields.criadoEm.timestampValue)
-  }));
 }
 
 // Get next hymn number for specific organ
 export async function getNextHymnNumber(orgao: string): Promise<number> {
   try {
+    console.log('Getting next hymn number for organ:', orgao);
     const hymns = await getDocumentsFromFirestore('hinos');
+    console.log('Total hymns found:', hymns.length);
+    
     const organHymns = hymns.filter(h => h.orgao === orgao);
+    console.log('Hymns for organ', orgao, ':', organHymns.length);
     
     if (organHymns.length === 0) {
+      console.log('No hymns found for organ, starting with 1');
       return 1;
     }
     
     const maxNumber = Math.max(...organHymns.map(h => h.numero));
-    return maxNumber + 1;
+    const nextNumber = maxNumber + 1;
+    console.log('Next hymn number will be:', nextNumber);
+    return nextNumber;
   } catch (error) {
-    console.warn('Error getting hymn number, using random:', error);
+    console.error('Error getting hymn number:', error);
+    console.warn('Using random number as fallback');
     return Math.floor(Math.random() * 9000) + 1000;
   }
 }
