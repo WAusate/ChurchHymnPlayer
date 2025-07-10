@@ -1,15 +1,4 @@
-import {
-  collection,
-  doc,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  Timestamp,
-  QuerySnapshot,
-  DocumentData
-} from 'firebase/firestore';
-import { ref, getDownloadURL } from 'firebase/storage';
+import { Timestamp } from 'firebase/firestore';
 import { db, storage, auth, authReady } from './firebase';
 import { 
   uploadFileToStorage, 
@@ -40,20 +29,21 @@ export interface LocalHymn {
 const HYMNS_COLLECTION = 'hinos';
 
 /**
- * Get all hymns from Firestore
+ * Get all hymns from Firestore using REST API to avoid query limitations
  */
 export async function getAllHymns(): Promise<LocalHymn[]> {
   try {
     await authReady;
-    const querySnapshot = await getDocs(
-      query(collection(db, HYMNS_COLLECTION), orderBy('numero', 'asc'))
-    );
+    
+    // Use REST API instead of SDK to avoid failed-precondition errors
+    const firestoreHymns = await getDocumentsFromFirestore(HYMNS_COLLECTION);
+    
+    // Sort hymns by numero
+    firestoreHymns.sort((a, b) => a.numero - b.numero);
     
     const hymns: LocalHymn[] = [];
     
-    for (const docSnap of querySnapshot.docs) {
-      const data = docSnap.data() as FirebaseHymn;
-      
+    for (const data of firestoreHymns) {
       try {
         // Get download URL for audio file using improved method
         let audioUrl: string;
@@ -71,7 +61,7 @@ export async function getAllHymns(): Promise<LocalHymn[]> {
           titulo: data.titulo,
           orgao: data.orgao,
           audioUrl,
-          criadoEm: data.criadoEm.toDate()
+          criadoEm: data.criadoEm
         });
       } catch (urlError) {
         console.warn(`Failed to get URL for hymn ${data.numero}:`, urlError);
@@ -81,37 +71,40 @@ export async function getAllHymns(): Promise<LocalHymn[]> {
           titulo: data.titulo,
           orgao: data.orgao,
           audioUrl: '', // Empty URL will be handled by the audio player
-          criadoEm: data.criadoEm.toDate()
+          criadoEm: data.criadoEm
         });
       }
     }
     
     return hymns;
   } catch (error) {
-    console.error('Error fetching hymns:', error);
+    console.error('Error fetching hymns with REST API:', error);
     throw new Error('Erro ao carregar hinos do Firebase');
   }
 }
 
 /**
- * Get hymns by organ
+ * Get hymns by organ using REST API to avoid query limitations
  */
 export async function getHymnsByOrgan(organName: string): Promise<LocalHymn[]> {
   try {
+    console.log('getHymnsByOrgan called with organName:', organName);
     await authReady;
-    const querySnapshot = await getDocs(
-      query(
-        collection(db, HYMNS_COLLECTION),
-        where('orgao', '==', organName),
-        orderBy('numero', 'asc')
-      )
-    );
+    
+    // Use REST API instead of SDK to avoid failed-precondition errors
+    const firestoreHymns = await getDocumentsFromFirestore(HYMNS_COLLECTION);
+    console.log('Firestore hymns retrieved:', firestoreHymns.length);
+    
+    // Filter by organ and sort by numero on client side
+    const organHymns = firestoreHymns
+      .filter(hymn => hymn.orgao === organName)
+      .sort((a, b) => a.numero - b.numero);
+    
+    console.log(`Hymns for organ "${organName}":`, organHymns.length);
     
     const hymns: LocalHymn[] = [];
     
-    for (const docSnap of querySnapshot.docs) {
-      const data = docSnap.data() as FirebaseHymn;
-      
+    for (const data of organHymns) {
       try {
         // Get download URL for audio file using improved method
         let audioUrl: string;
@@ -129,7 +122,7 @@ export async function getHymnsByOrgan(organName: string): Promise<LocalHymn[]> {
           titulo: data.titulo,
           orgao: data.orgao,
           audioUrl,
-          criadoEm: data.criadoEm.toDate()
+          criadoEm: data.criadoEm
         });
       } catch (urlError) {
         console.warn(`Failed to get URL for hymn ${data.numero} (${organName}):`, urlError);
@@ -139,14 +132,15 @@ export async function getHymnsByOrgan(organName: string): Promise<LocalHymn[]> {
           titulo: data.titulo,
           orgao: data.orgao,
           audioUrl: '', // Empty URL will be handled by the audio player
-          criadoEm: data.criadoEm.toDate()
+          criadoEm: data.criadoEm
         });
       }
     }
     
+    console.log('Final hymns processed:', hymns.length);
     return hymns;
   } catch (error) {
-    console.error('Error fetching hymns by organ:', error);
+    console.error('Error fetching hymns by organ with REST API:', error);
     throw new Error(`Erro ao carregar hinos do órgão ${organName}`);
   }
 }
