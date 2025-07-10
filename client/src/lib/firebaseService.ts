@@ -6,6 +6,7 @@ import {
   query,
   where,
   orderBy,
+  limit,
   Timestamp,
   QuerySnapshot,
   DocumentData
