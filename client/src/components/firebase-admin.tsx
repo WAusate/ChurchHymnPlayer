@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { addHymn } from '@/lib/firebaseService';
 import { organs } from '@/lib/organs';
-import { Upload, Loader2 } from 'lucide-react';
+import { Upload, Loader2, AlertCircle } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -14,26 +14,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 
 export default function FirebaseAdmin() {
   const [titulo, setTitulo] = useState('');
   const [orgao, setOrgao] = useState('');
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState('');
   const { toast } = useToast();
+
+  // Maximum file size: 10MB
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.type.startsWith('audio/')) {
-        setAudioFile(file);
-      } else {
+      // Validate file type
+      if (!file.type.startsWith('audio/')) {
         toast({
           title: "Erro",
           description: "Por favor, selecione um arquivo de áudio válido.",
           variant: "destructive",
         });
+        return;
       }
+
+      // Validate file size (10MB limit)
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "Arquivo muito grande",
+          description: `O arquivo deve ter no máximo ${Math.round(MAX_FILE_SIZE / (1024 * 1024))}MB. Arquivo atual: ${Math.round(file.size / (1024 * 1024))}MB`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setAudioFile(file);
+      setUploadProgress(0);
+      setUploadStatus('');
     }
   };
 
@@ -50,9 +70,19 @@ export default function FirebaseAdmin() {
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
+    setUploadStatus('Iniciando upload...');
     
     try {
-      const docId = await addHymn(titulo, orgao, audioFile);
+      const progressCallback = (progress: number, status: string) => {
+        setUploadProgress(progress);
+        setUploadStatus(status);
+      };
+
+      const docId = await addHymn(titulo, orgao, audioFile, progressCallback);
+      
+      setUploadProgress(100);
+      setUploadStatus('Upload concluído!');
       
       toast({
         title: "Sucesso",
@@ -63,6 +93,8 @@ export default function FirebaseAdmin() {
       setTitulo('');
       setOrgao('');
       setAudioFile(null);
+      setUploadProgress(0);
+      setUploadStatus('');
       
       // Reset file input
       const fileInput = document.getElementById('audioFile') as HTMLInputElement;
@@ -78,6 +110,9 @@ export default function FirebaseAdmin() {
       
     } catch (error: any) {
       console.error('Error adding hymn:', error);
+      setUploadProgress(0);
+      setUploadStatus('');
+      
       toast({
         title: "Erro",
         description:
@@ -136,9 +171,27 @@ export default function FirebaseAdmin() {
               required
             />
             {audioFile && (
-              <p className="text-sm text-gray-600 mt-1">
-                Arquivo selecionado: {audioFile.name}
-              </p>
+              <div className="mt-1">
+                <p className="text-sm text-gray-600">
+                  Arquivo selecionado: {audioFile.name}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Tamanho: {Math.round(audioFile.size / (1024 * 1024) * 100) / 100}MB
+                </p>
+              </div>
+            )}
+            
+            {isUploading && (
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-church-primary" />
+                  <span className="text-sm text-gray-600">{uploadStatus}</span>
+                </div>
+                <Progress value={uploadProgress} className="w-full" />
+                <p className="text-xs text-gray-500 mt-1">
+                  {Math.round(uploadProgress)}% concluído
+                </p>
+              </div>
             )}
           </div>
           

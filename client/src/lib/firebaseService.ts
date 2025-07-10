@@ -11,7 +11,7 @@ import {
   QuerySnapshot,
   DocumentData
 } from 'firebase/firestore';
-import { ref, getDownloadURL, uploadBytes } from 'firebase/storage';
+import { ref, getDownloadURL, uploadBytes, uploadBytesResumable } from 'firebase/storage';
 import { db, storage, authReady } from './firebase';
 
 // Firestore types
@@ -114,7 +114,8 @@ export async function getHymnsByOrgan(organName: string): Promise<LocalHymn[]> {
 export async function addHymn(
   titulo: string,
   orgao: string,
-  audioFile: File
+  audioFile: File,
+  progressCallback?: (progress: number, status: string) => void
 ): Promise<string> {
   try {
     await authReady;
@@ -135,59 +136,56 @@ export async function addHymn(
       nextNumber = lastHymn.numero + 1;
     }
     
-    // Upload audio file to Storage with retry logic
+    // Upload audio file to Storage with progress tracking
     const audioPath = `hinos/${orgao.toLowerCase().replace(/\s+/g, '-')}-${nextNumber}-${Date.now()}.mp3`;
     const audioRef = ref(storage, audioPath);
     
-    let uploadAttempts = 0;
-    const maxAttempts = 3;
+    progressCallback?.(10, 'Preparando upload...');
     
-    while (uploadAttempts < maxAttempts) {
-      try {
-        await uploadBytes(audioRef, audioFile);
-        break;
-      } catch (uploadError) {
-        uploadAttempts++;
-        if (uploadAttempts >= maxAttempts) {
-          throw new Error('Falha no upload do arquivo de áudio após várias tentativas');
+    // Use uploadBytesResumable for progress tracking
+    const uploadTask = uploadBytesResumable(audioRef, audioFile);
+    
+    await new Promise<void>((resolve, reject) => {
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          // Progress monitoring
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 70 + 10; // 10-80%
+          progressCallback?.(progress, `Enviando arquivo... ${Math.round(progress)}%`);
+        },
+        (error) => {
+          // Handle errors
+          console.error('Upload error:', error);
+          reject(new Error('Falha no upload do arquivo de áudio'));
+        },
+        () => {
+          // Upload completed successfully
+          progressCallback?.(80, 'Upload do arquivo concluído');
+          resolve();
         }
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, 1000 * uploadAttempts));
-      }
-    }
+      );
+    });
     
-    // Add hymn document to Firestore with retry logic
-    let docAttempts = 0;
-    let docRef;
+    // Add hymn document to Firestore
+    progressCallback?.(85, 'Salvando informações do hino...');
     
-    while (docAttempts < maxAttempts) {
-      try {
-        docRef = await addDoc(collection(db, HYMNS_COLLECTION), {
-          numero: nextNumber,
-          titulo,
-          orgao,
-          audioPath,
-          criadoEm: Timestamp.now()
-        });
-        break;
-      } catch (docError) {
-        docAttempts++;
-        if (docAttempts >= maxAttempts) {
-          throw new Error('Falha ao salvar hino no banco de dados após várias tentativas');
-        }
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, 1000 * docAttempts));
-      }
-    }
+    const docRef = await addDoc(collection(db, HYMNS_COLLECTION), {
+      numero: nextNumber,
+      titulo,
+      orgao,
+      audioPath,
+      criadoEm: Timestamp.now()
+    });
     
     // Refresh offline data after successful addition
+    progressCallback?.(95, 'Atualizando dados locais...');
     try {
       await initializeOfflineData();
     } catch (offlineError) {
       console.warn('Failed to refresh offline data:', offlineError);
     }
     
-    return docRef!.id;
+    progressCallback?.(100, 'Hino adicionado com sucesso!');
+    return docRef.id;
   } catch (error: any) {
     console.error('Error adding hymn:', error);
     
