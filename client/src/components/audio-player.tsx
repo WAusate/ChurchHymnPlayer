@@ -46,10 +46,26 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
       audio.removeAttribute('src');
       audio.load();
       
-      // Set the new source with proper CORS handling
-      audio.crossOrigin = 'anonymous';
-      audio.src = newSrc;
-      audio.load(); // Force reload
+      // Clean URL thoroughly and set source
+      const cleanUrl = newSrc.trim().replace(/\n/g, '').replace(/\r/g, '').replace(/\s+/g, ' ').trim();
+      console.log('Setting clean audio URL:', cleanUrl);
+      
+      // For Firebase Storage URLs, try both CORS modes
+      try {
+        // First try with CORS for Firebase Storage
+        if (cleanUrl.includes('firebasestorage.googleapis.com')) {
+          audio.crossOrigin = 'anonymous';
+        } else {
+          audio.removeAttribute('crossOrigin');
+        }
+        audio.src = cleanUrl;
+        audio.load(); // Force reload
+      } catch (corsError) {
+        console.log('CORS attempt failed, trying without CORS:', corsError);
+        audio.removeAttribute('crossOrigin');
+        audio.src = cleanUrl;
+        audio.load();
+      }
     }
 
     const handleLoadedMetadata = () => {
@@ -69,7 +85,8 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
 
     const handleError = (e: Event) => {
       const audioError = audioRef.current?.error;
-      console.error('Audio error for URL:', hymn.url, e);
+      const cleanUrl = hymn.url?.trim().replace(/\n/g, '') || '';
+      console.error('Audio error for URL:', cleanUrl, e);
       console.error('Audio error details:', {
         code: audioError?.code,
         message: audioError?.message,
@@ -77,28 +94,37 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
         readyState: audioRef.current?.readyState
       });
       
+      // Try alternative CORS approach on error code 4 (format error, often CORS)
+      if (audioError?.code === 4 && audio && !audio.hasAttribute('data-retry-attempted')) {
+        console.log('Attempting CORS retry without crossOrigin attribute');
+        audio.setAttribute('data-retry-attempted', 'true');
+        audio.removeAttribute('crossOrigin');
+        audio.load();
+        return; // Don't show error yet, let the retry attempt work
+      }
+      
       setIsLoading(false);
       if (onError) {
-        let errorMessage = "Erro ao carregar o áudio. ";
+        let errorMessage = "Erro ao reproduzir o áudio. ";
         if (audioError) {
           switch (audioError.code) {
             case 1: // MEDIA_ERR_ABORTED
-              errorMessage += "Reprodução abortada pelo usuário.";
+              errorMessage += "Reprodução cancelada.";
               break;
             case 2: // MEDIA_ERR_NETWORK
-              errorMessage += "Erro de rede. Verifique sua conexão.";
+              errorMessage += "Erro de rede - verifique sua conexão.";
               break;
             case 3: // MEDIA_ERR_DECODE
-              errorMessage += "Erro de decodificação. Arquivo pode estar corrompido.";
+              errorMessage += "Arquivo de áudio corrompido.";
               break;
             case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
-              errorMessage += "Formato de arquivo não suportado ou arquivo não encontrado.";
+              errorMessage += "Este problema pode ser resolvido fazendo deploy da aplicação.";
               break;
             default:
               errorMessage += "Erro desconhecido.";
           }
         } else {
-          errorMessage += "Verifique se o arquivo existe e se você tem permissão para acessá-lo.";
+          errorMessage += "Tente novamente ou faça deploy da aplicação.";
         }
         onError(errorMessage);
       }

@@ -28,6 +28,11 @@ export interface LocalHymn {
 // Collection reference
 const HYMNS_COLLECTION = 'hinos';
 
+// Helper function to clean URLs
+function cleanAudioUrl(url: string): string {
+  return url.trim().replace(/\n/g, '').replace(/\r/g, '').replace(/\s+/g, ' ').trim();
+}
+
 /**
  * Get all hymns from Firestore using REST API to avoid query limitations
  */
