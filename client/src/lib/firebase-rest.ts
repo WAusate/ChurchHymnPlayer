@@ -55,13 +55,14 @@ export async function uploadFileToStorage(
       throw new Error('STORAGE_BUCKET environment variable is not set');
     }
     
-    const cleanBucket = STORAGE_BUCKET.replace('.appspot.com', '').replace('.firebasestorage.app', '');
+    // Use the full storage bucket URL for newer Firebase Storage format
     const cleanPath = path.startsWith('hinos/') ? path : `hinos/${path}`;
     
-    const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/${cleanBucket}.appspot.com/o?name=${encodeURIComponent(cleanPath)}`;
+    // Use the correct Firebase Storage URL format
+    const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o?name=${encodeURIComponent(cleanPath)}`;
     console.log('Upload URL:', uploadUrl);
     console.log('Clean path:', cleanPath);
-    console.log('Storage bucket after cleaning:', cleanBucket);
+    console.log('Storage bucket:', STORAGE_BUCKET);
     
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -125,12 +126,11 @@ export async function uploadFileToStorage(
 // Get download URL for uploaded file
 export async function getDownloadUrl(storagePath: string): Promise<string> {
   try {
-    // Remove bucket suffix if present and ensure proper format
-    const cleanBucket = STORAGE_BUCKET.replace('.appspot.com', '');
+    // Ensure proper path format
     const cleanPath = storagePath.startsWith('hinos/') ? storagePath : `hinos/${storagePath}`;
     
     // For public files, we can use the media URL directly
-    const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${cleanBucket}.appspot.com/o/${encodeURIComponent(cleanPath)}?alt=media`;
+    const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(cleanPath)}?alt=media`;
     
     // Test if the URL is accessible
     const response = await fetch(publicUrl, { method: 'HEAD' });
@@ -140,15 +140,14 @@ export async function getDownloadUrl(storagePath: string): Promise<string> {
     } else {
       // If public access fails, try with auth token
       const token = await getAuthToken();
-      const authUrl = `https://firebasestorage.googleapis.com/v0/b/${cleanBucket}.appspot.com/o/${encodeURIComponent(cleanPath)}?alt=media&token=${token}`;
+      const authUrl = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(cleanPath)}?alt=media&token=${token}`;
       return authUrl;
     }
   } catch (error) {
     console.error('Error getting download URL:', error);
     // Fallback to direct URL construction
-    const cleanBucket = STORAGE_BUCKET.replace('.appspot.com', '');
     const cleanPath = storagePath.startsWith('hinos/') ? storagePath : `hinos/${storagePath}`;
-    return `https://firebasestorage.googleapis.com/v0/b/${cleanBucket}.appspot.com/o/${encodeURIComponent(cleanPath)}?alt=media`;
+    return `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(cleanPath)}?alt=media`;
   }
 }
 
