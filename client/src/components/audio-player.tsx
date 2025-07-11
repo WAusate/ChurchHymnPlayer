@@ -42,7 +42,12 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
       setCurrentTime(0);
       setDuration(0);
       
-      // Set the new source
+      // Clear any existing error states
+      audio.removeAttribute('src');
+      audio.load();
+      
+      // Set the new source with proper CORS handling
+      audio.crossOrigin = 'anonymous';
       audio.src = newSrc;
       audio.load(); // Force reload
     }
@@ -136,15 +141,29 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
   // Test function to debug audio URL access
   const testAudioUrl = async () => {
     console.log('Testing audio URL access...');
+    console.log('URL being tested:', hymn.url);
     try {
       const response = await fetch(hymn.url, { 
         method: 'HEAD',
-        mode: 'cors'
+        mode: 'cors',
+        credentials: 'include'
       });
       console.log('URL test response:', response.status, response.statusText);
       console.log('Response headers:', [...response.headers.entries()]);
+      console.log('Content-Type:', response.headers.get('content-type'));
+      console.log('Content-Length:', response.headers.get('content-length'));
     } catch (error) {
       console.error('URL test error:', error);
+      console.log('Trying without CORS...');
+      try {
+        const response2 = await fetch(hymn.url, { 
+          method: 'HEAD',
+          mode: 'no-cors'
+        });
+        console.log('No-CORS test response:', response2.status, response2.type);
+      } catch (error2) {
+        console.error('No-CORS test also failed:', error2);
+      }
     }
   };
 
@@ -165,15 +184,34 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
         // Check if audio is ready to play
         if (audio.readyState < 2) {
           console.log('Audio not ready, waiting for it to load...');
+          console.log('Current audio src:', audio.src);
+          console.log('Current audio URL:', hymn.url);
+          
+          // Force reload if src doesn't match
+          if (audio.src !== hymn.url) {
+            console.log('Audio src mismatch, forcing reload...');
+            audio.src = hymn.url;
+            audio.load();
+          }
+          
           await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              audio.removeEventListener('canplay', handleCanPlay);
+              audio.removeEventListener('error', handleError);
+              reject(new Error('Audio load timeout'));
+            }, 10000); // 10 second timeout
+            
             const handleCanPlay = () => {
+              clearTimeout(timeout);
               audio.removeEventListener('canplay', handleCanPlay);
               audio.removeEventListener('error', handleError);
               resolve(true);
             };
-            const handleError = () => {
+            const handleError = (e: Event) => {
+              clearTimeout(timeout);
               audio.removeEventListener('canplay', handleCanPlay);
               audio.removeEventListener('error', handleError);
+              console.error('Audio load error in promise:', e);
               reject(new Error('Audio failed to load'));
             };
             audio.addEventListener('canplay', handleCanPlay);
@@ -255,6 +293,7 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
           ref={audioRef} 
           preload="metadata"
           crossOrigin="anonymous"
+          controls={false}
         >
           Seu navegador não suporta o elemento de áudio.
         </audio>
@@ -313,7 +352,7 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
         </div>
 
         {/* Debug Test Button */}
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-4 gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -321,6 +360,27 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
             className="text-xs"
           >
             Testar URL do Áudio
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const audio = audioRef.current;
+              if (audio) {
+                console.log('Audio element state:', {
+                  src: audio.src,
+                  readyState: audio.readyState,
+                  networkState: audio.networkState,
+                  error: audio.error,
+                  crossOrigin: audio.crossOrigin,
+                  currentTime: audio.currentTime,
+                  duration: audio.duration
+                });
+              }
+            }}
+            className="text-xs"
+          >
+            Debug Audio
           </Button>
         </div>
 

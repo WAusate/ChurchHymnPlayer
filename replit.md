@@ -137,12 +137,15 @@ This is a church hymn management system built with a modern React frontend and E
 If you see **"Missing or insufficient permissions"** when uploading a hymn:
 1. Review your Firebase Firestore and Storage security rules. During testing you can allow public write access.
 2. Ensure the value of `VITE_FIREBASE_STORAGE_BUCKET` in your `.env` file exactly matches the bucket name configured in Firebase.
-t57kza-codex/corrigir-erro-de-permissoes-ao-adicionar-hino
 3. The app signs in anonymously on startup. If the console shows an authentication error, fix your Firebase configuration or adjust rules.
-pljnyx-codex/corrigir-erro-de-permissoes-ao-adicionar-hino
-3. As an alternative, configure your rules to allow authenticated users and let the app sign in anonymously automatically.
-main
-main
+
+### Audio Playback Issues
+If you encounter **"MEDIA_ELEMENT_ERROR: Format error"** during audio playback:
+1. This is typically a CORS (Cross-Origin Resource Sharing) issue, not a file format problem
+2. Firebase Storage URLs are restricted in local development environments
+3. **Solution**: Deploy to Firebase Hosting to resolve CORS restrictions automatically
+4. **Workaround**: For local testing, use debug tools to verify file integrity and URLs
+5. Files are valid MP3 format with proper MIME types (`audio/mpeg`)
 
 ## Changelog
 - July 08, 2025. Initial setup
@@ -162,5 +165,7 @@ main
 - July 11, 2025. **SOLUTION**: Deploy to Firebase Hosting will resolve CORS issues automatically
 - July 11, 2025. **BUILD COMPLETED**: Successfully built application with 1746 modules transformed
 - July 11, 2025. **DEPLOY PACKAGE READY**: All files prepared for Firebase Hosting deployment
+- July 11, 2025. **AUDIO ISSUE IDENTIFIED**: Media playback fails due to CORS restrictions on Firebase Storage URLs in local development
+- July 11, 2025. **PARTIAL FIX APPLIED**: URL cleaning implemented to remove trailing whitespace, improved error handling and debugging tools added
 
 ## User PreferencesPreferred communication style: Simple, everyday language.
