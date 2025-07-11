@@ -49,14 +49,17 @@ export async function getAllHymns(): Promise<LocalHymn[]> {
         let audioUrl: string;
         
         if (data.audioPath.startsWith('http')) {
-          // If it's already a full URL, use it directly
-          audioUrl = data.audioPath;
+          // If it's already a full URL, use it directly but clean it
+          audioUrl = data.audioPath.trim();
         } else {
           // Use our improved getDownloadUrl function
           console.log(`Getting download URL for hymn ${data.numero} with path: ${data.audioPath}`);
           audioUrl = await getDownloadUrl(data.audioPath);
           console.log(`Got download URL for hymn ${data.numero}: ${audioUrl}`);
         }
+        
+        // Clean the URL to remove any trailing whitespace/newlines
+        audioUrl = audioUrl.trim();
         
         hymns.push({
           numero: data.numero,
@@ -112,14 +115,17 @@ export async function getHymnsByOrgan(organName: string): Promise<LocalHymn[]> {
         let audioUrl: string;
         
         if (data.audioPath.startsWith('http')) {
-          // If it's already a full URL, use it directly
-          audioUrl = data.audioPath;
+          // If it's already a full URL, use it directly but clean it
+          audioUrl = data.audioPath.trim();
         } else {
           // Use our improved getDownloadUrl function
           console.log(`Getting download URL for hymn ${data.numero} with path: ${data.audioPath}`);
           audioUrl = await getDownloadUrl(data.audioPath);
           console.log(`Got download URL for hymn ${data.numero}: ${audioUrl}`);
         }
+        
+        // Clean the URL to remove any trailing whitespace/newlines
+        audioUrl = audioUrl.trim();
         
         hymns.push({
           numero: data.numero,

@@ -274,7 +274,7 @@ export async function getDocumentsFromFirestore(
       numero: parseInt(doc.fields.numero.integerValue),
       titulo: doc.fields.titulo.stringValue,
       orgao: doc.fields.orgao.stringValue,
-      audioPath: doc.fields.audioPath.stringValue,
+      audioPath: doc.fields.audioPath.stringValue.trim(), // Clean any whitespace/newlines
       criadoEm: new Date(doc.fields.criadoEm.timestampValue)
     }));
   } catch (error) {
