@@ -180,22 +180,28 @@ export async function addHymn(
     progressCallback?.(15, 'Iniciando upload do arquivo...');
     
     try {
+      console.log('About to upload file:', audioFile.name, 'to path:', audioPath);
+      
       // Upload file with progress tracking
       await uploadFileToStorage(audioFile, audioPath, (progress) => {
         const adjustedProgress = (progress * 0.65) + 15; // 15-80%
         progressCallback?.(adjustedProgress, `Enviando arquivo... ${Math.round(progress)}%`);
       });
       
+      console.log('Upload completed successfully');
       progressCallback?.(80, 'Upload do arquivo concluído');
     } catch (uploadError: any) {
       console.error('Upload error:', uploadError);
+      console.error('Upload error type:', typeof uploadError);
+      console.error('Upload error message:', uploadError?.message);
+      console.error('Upload error stack:', uploadError?.stack);
       
-      if (uploadError.message?.includes('unauthorized')) {
+      if (uploadError?.message?.includes('unauthorized')) {
         throw new Error('Sem permissão para upload. Verifique as regras do Firebase Storage.');
-      } else if (uploadError.message?.includes('network')) {
+      } else if (uploadError?.message?.includes('network')) {
         throw new Error('Erro de conexão no upload. Verifique sua internet.');
       } else {
-        throw new Error(`Erro no upload: ${uploadError.message || 'Erro desconhecido'}`);
+        throw new Error(`Erro no upload: ${uploadError?.message || JSON.stringify(uploadError) || 'Erro desconhecido'}`);
       }
     }
     

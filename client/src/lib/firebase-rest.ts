@@ -34,13 +34,34 @@ export async function uploadFileToStorage(
   progressCallback?: (progress: number) => void
 ): Promise<string> {
   try {
+    console.log('Starting upload for file:', file.name, 'size:', file.size, 'type:', file.type);
+    console.log('Upload path:', path);
+    
+    if (!file) {
+      throw new Error('No file provided for upload');
+    }
+    
+    if (!file.type.startsWith('audio/')) {
+      throw new Error('File must be an audio file');
+    }
+    
     const token = await getAuthToken();
+    console.log('Got auth token, proceeding with upload...');
     
     // Clean and format the storage bucket name
-    const cleanBucket = STORAGE_BUCKET.replace('.appspot.com', '');
+    console.log('Original STORAGE_BUCKET:', STORAGE_BUCKET);
+    
+    if (!STORAGE_BUCKET) {
+      throw new Error('STORAGE_BUCKET environment variable is not set');
+    }
+    
+    const cleanBucket = STORAGE_BUCKET.replace('.appspot.com', '').replace('.firebasestorage.app', '');
     const cleanPath = path.startsWith('hinos/') ? path : `hinos/${path}`;
     
     const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/${cleanBucket}.appspot.com/o?name=${encodeURIComponent(cleanPath)}`;
+    console.log('Upload URL:', uploadUrl);
+    console.log('Clean path:', cleanPath);
+    console.log('Storage bucket after cleaning:', cleanBucket);
     
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -48,31 +69,41 @@ export async function uploadFileToStorage(
       xhr.upload.addEventListener('progress', (e) => {
         if (e.lengthComputable) {
           const progress = (e.loaded / e.total) * 100;
+          console.log(`Upload progress: ${progress.toFixed(1)}%`);
           progressCallback?.(progress);
         }
       });
       
       xhr.addEventListener('load', () => {
+        console.log('Upload completed with status:', xhr.status);
+        console.log('Upload response:', xhr.responseText);
+        
         try {
           if (xhr.status === 200) {
             const response = JSON.parse(xhr.responseText);
+            console.log('Upload successful, response:', response);
             resolve(response.name || cleanPath);
           } else {
             const errorText = xhr.responseText || xhr.statusText;
             console.error('Upload error response:', errorText);
+            console.error('Upload error status:', xhr.status);
             reject(new Error(`Upload failed: ${xhr.status} ${errorText}`));
           }
         } catch (parseError) {
           console.error('Error parsing upload response:', parseError);
+          console.error('Raw response text:', xhr.responseText);
           reject(new Error('Invalid response from upload server'));
         }
       });
       
-      xhr.addEventListener('error', () => {
-        reject(new Error('Upload failed due to network error'));
+      xhr.addEventListener('error', (e) => {
+        console.error('Upload network error:', e);
+        console.error('XHR error details:', xhr.status, xhr.statusText);
+        reject(new Error(`Upload failed due to network error: ${xhr.status} ${xhr.statusText}`));
       });
       
       xhr.addEventListener('timeout', () => {
+        console.error('Upload timeout');
         reject(new Error('Upload timeout'));
       });
       
@@ -80,11 +111,14 @@ export async function uploadFileToStorage(
       xhr.setRequestHeader('Authorization', `Bearer ${token}`);
       xhr.setRequestHeader('Content-Type', file.type);
       xhr.timeout = 60000; // 60 second timeout
+      
+      console.log('Sending file via XHR...');
       xhr.send(file);
     });
   } catch (error) {
     console.error('Error in uploadFileToStorage:', error);
-    throw new Error(`Upload setup failed: ${error.message}`);
+    console.error('Error details:', error.message, error.stack);
+    throw new Error(`Upload setup failed: ${error.message || 'Unknown error'}`);
   }
 }
 
