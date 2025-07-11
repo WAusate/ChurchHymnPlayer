@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(240, 6%, 97%);
+  --foreground: hsl(210, 11%, 17%);
+  --muted: hsl(210, 6%, 96%);
+  --muted-foreground: hsl(210, 5%, 45%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(210, 11%, 17%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(210, 11%, 17%);
+  --border: hsl(210, 6%, 90%);
+  --input: hsl(210, 6%, 90%);
+  --primary: hsl(194, 100%, 19%);
+  --primary-foreground: hsl(210, 100%, 99%);
+  --secondary: hsl(210, 6%, 96%);
+  --secondary-foreground: hsl(210, 11%, 10%);
+  --accent: hsl(210, 6%, 96%);
+  --accent-foreground: hsl(210, 11%, 10%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(60, 9%, 98%);
+  --ring: hsl(210, 11%, 17%);
+  --radius: 0.5rem;
+  
+  /* Church color palette */
+  --church-primary: hsl(194, 100%, 19%);
+  --church-secondary: hsl(198, 59%, 42%);
+  --church-light: hsl(196, 71%, 81%);
+  --church-accent: hsl(48, 100%, 63%);
+  --church-bg: hsl(214, 32%, 97%);
+  --church-text: hsl(0, 0%, 17%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 4%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 4%, 16%);
+  --muted-foreground: hsl(240, 5%, 65%);
+  --popover: hsl(240, 10%, 4%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 4%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 4%, 16%);
+  --input: hsl(240, 4%, 16%);
+  --primary: hsl(194, 100%, 19%);
+  --primary-foreground: hsl(210, 100%, 99%);
+  --secondary: hsl(240, 4%, 16%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 4%, 16%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 63%, 31%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 5%, 84%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-church-bg text-church-text;
+  }
+}
+
+/* Custom church theme classes */
+.bg-church-primary {
+  background-color: var(--church-primary);
+}
+
+.bg-church-secondary {
+  background-color: var(--church-secondary);
+}
+
+.bg-church-light {
+  background-color: var(--church-light);
+}
+
+.bg-church-accent {
+  background-color: var(--church-accent);
+}
+
+.bg-church-bg {
+  background-color: var(--church-bg);
+}
+
+.text-church-primary {
+  color: var(--church-primary);
+}
+
+.text-church-secondary {
+  color: var(--church-secondary);
+}
+
+.text-church-light {
+  color: var(--church-light);
+}
+
+.text-church-accent {
+  color: var(--church-accent);
+}
+
+.text-church-text {
+  color: var(--church-text);
+}
+
+.border-church-secondary {
+  border-color: var(--church-secondary);
+}
+
+.hover\:bg-church-secondary:hover {
+  background-color: var(--church-secondary);
+}
+
+.hover\:text-church-primary:hover {
+  color: var(--church-primary);
+}
+
+.hover\:text-church-accent:hover {
+  color: var(--church-accent);
+}
+
+.hover\:border-church-secondary:hover {
+  border-color: var(--church-secondary);
+}
+
+.group:hover .group-hover\:text-church-primary {
+  color: var(--church-primary);
+}
+
+.group:hover .group-hover\:opacity-100 {
+  opacity: 1;
+}
