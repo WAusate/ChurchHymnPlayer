@@ -129,25 +129,61 @@ export async function getDownloadUrl(storagePath: string): Promise<string> {
     // Ensure proper path format
     const cleanPath = storagePath.startsWith('hinos/') ? storagePath : `hinos/${storagePath}`;
     
-    // For public files, we can use the media URL directly
+    // First, try to get the file metadata and download token via Firebase REST API
+    try {
+      const token = await getAuthToken();
+      const metadataUrl = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(cleanPath)}`;
+      
+      console.log('Getting file metadata from:', metadataUrl);
+      
+      const response = await fetch(metadataUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const metadata = await response.json();
+        console.log('File metadata:', metadata);
+        
+        // If file has a download token, use it
+        if (metadata.downloadTokens) {
+          const authenticatedUrl = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(cleanPath)}?alt=media&token=${metadata.downloadTokens}`;
+          console.log('Using authenticated URL:', authenticatedUrl);
+          return authenticatedUrl;
+        }
+      }
+    } catch (metadataError) {
+      console.log('Metadata fetch failed, trying direct URL:', metadataError);
+    }
+    
+    // Fallback: try direct public URL
     const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(cleanPath)}?alt=media`;
+    console.log('Trying public URL:', publicUrl);
     
     // Test if the URL is accessible
-    const response = await fetch(publicUrl, { method: 'HEAD' });
+    const testResponse = await fetch(publicUrl, { method: 'HEAD' });
     
-    if (response.ok) {
+    if (testResponse.ok) {
+      console.log('Public URL works:', publicUrl);
       return publicUrl;
     } else {
+      console.log('Public URL failed, status:', testResponse.status);
       // If public access fails, try with auth token
       const token = await getAuthToken();
       const authUrl = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(cleanPath)}?alt=media&token=${token}`;
+      console.log('Using auth URL:', authUrl);
       return authUrl;
     }
   } catch (error) {
     console.error('Error getting download URL:', error);
     // Fallback to direct URL construction
     const cleanPath = storagePath.startsWith('hinos/') ? storagePath : `hinos/${storagePath}`;
-    return `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(cleanPath)}?alt=media`;
+    const fallbackUrl = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(cleanPath)}?alt=media`;
+    console.log('Using fallback URL:', fallbackUrl);
+    return fallbackUrl;
   }
 }
 

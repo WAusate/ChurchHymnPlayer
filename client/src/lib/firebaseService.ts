@@ -53,7 +53,9 @@ export async function getAllHymns(): Promise<LocalHymn[]> {
           audioUrl = data.audioPath;
         } else {
           // Use our improved getDownloadUrl function
+          console.log(`Getting download URL for hymn ${data.numero} with path: ${data.audioPath}`);
           audioUrl = await getDownloadUrl(data.audioPath);
+          console.log(`Got download URL for hymn ${data.numero}: ${audioUrl}`);
         }
         
         hymns.push({
@@ -114,7 +116,9 @@ export async function getHymnsByOrgan(organName: string): Promise<LocalHymn[]> {
           audioUrl = data.audioPath;
         } else {
           // Use our improved getDownloadUrl function
+          console.log(`Getting download URL for hymn ${data.numero} with path: ${data.audioPath}`);
           audioUrl = await getDownloadUrl(data.audioPath);
+          console.log(`Got download URL for hymn ${data.numero}: ${audioUrl}`);
         }
         
         hymns.push({

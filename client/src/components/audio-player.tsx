@@ -22,6 +22,21 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
     const audio = audioRef.current;
     if (!audio) return;
 
+    // Reset state when URL changes
+    setIsLoading(true);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+
+    // Check if URL is valid before setting up audio
+    if (!hymn.url || hymn.url.trim() === '') {
+      setIsLoading(false);
+      if (onError) {
+        onError("URL do áudio não disponível. Tente sincronizar novamente.");
+      }
+      return;
+    }
+
     const handleLoadedMetadata = () => {
       setDuration(audio.duration);
       setIsLoading(false);
@@ -38,6 +53,7 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
 
     const handleError = () => {
       setIsLoading(false);
+      console.error('Audio error for URL:', hymn.url);
       if (onError) {
         onError("Erro ao carregar o áudio. Verifique se o arquivo existe.");
       }
@@ -116,6 +132,20 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
   };
 
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  // Don't render player if no valid URL
+  if (!hymn.url || hymn.url.trim() === '') {
+    return (
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-church-primary to-church-secondary p-8 text-center">
+          <h2 className="text-2xl font-bold text-white mb-2">{hymn.titulo}</h2>
+          <p className="text-church-light">
+            Áudio não disponível. Tente sincronizar novamente.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
