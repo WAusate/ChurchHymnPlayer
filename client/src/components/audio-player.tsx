@@ -22,12 +22,6 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Reset state when URL changes
-    setIsLoading(true);
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setDuration(0);
-
     // Check if URL is valid before setting up audio
     if (!hymn.url || hymn.url.trim() === '') {
       setIsLoading(false);
@@ -37,7 +31,24 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
       return;
     }
 
+    // Only reset state if URL actually changed
+    const currentSrc = audio.src;
+    const newSrc = hymn.url;
+    
+    if (currentSrc !== newSrc) {
+      console.log('URL changed, resetting audio state');
+      setIsLoading(true);
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setDuration(0);
+      
+      // Set the new source
+      audio.src = newSrc;
+      audio.load(); // Force reload
+    }
+
     const handleLoadedMetadata = () => {
+      console.log('Audio metadata loaded, duration:', audio.duration);
       setDuration(audio.duration);
       setIsLoading(false);
     };
@@ -51,24 +62,38 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
       setCurrentTime(0);
     };
 
-    const handleError = () => {
+    const handleError = (e: Event) => {
+      console.error('Audio error for URL:', hymn.url, e);
       setIsLoading(false);
-      console.error('Audio error for URL:', hymn.url);
       if (onError) {
         onError("Erro ao carregar o áudio. Verifique se o arquivo existe.");
       }
+    };
+
+    const handleLoadStart = () => {
+      console.log('Audio load started');
+      setIsLoading(true);
+    };
+
+    const handleCanPlay = () => {
+      console.log('Audio can play');
+      setIsLoading(false);
     };
 
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
+    audio.addEventListener("loadstart", handleLoadStart);
+    audio.addEventListener("canplay", handleCanPlay);
 
     return () => {
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("error", handleError);
+      audio.removeEventListener("loadstart", handleLoadStart);
+      audio.removeEventListener("canplay", handleCanPlay);
     };
   }, [hymn.url, onError]);
 
@@ -157,8 +182,11 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
       </div>
 
       <div className="p-8">
-        <audio ref={audioRef} preload="metadata">
-          <source src={hymn.url} type="audio/mpeg" />
+        <audio 
+          ref={audioRef} 
+          preload="metadata"
+          crossOrigin="anonymous"
+        >
           Seu navegador não suporta o elemento de áudio.
         </audio>
 
