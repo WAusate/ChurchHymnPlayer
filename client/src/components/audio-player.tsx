@@ -63,10 +63,39 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
     };
 
     const handleError = (e: Event) => {
+      const audioError = audioRef.current?.error;
       console.error('Audio error for URL:', hymn.url, e);
+      console.error('Audio error details:', {
+        code: audioError?.code,
+        message: audioError?.message,
+        networkState: audioRef.current?.networkState,
+        readyState: audioRef.current?.readyState
+      });
+      
       setIsLoading(false);
       if (onError) {
-        onError("Erro ao carregar o áudio. Verifique se o arquivo existe.");
+        let errorMessage = "Erro ao carregar o áudio. ";
+        if (audioError) {
+          switch (audioError.code) {
+            case 1: // MEDIA_ERR_ABORTED
+              errorMessage += "Reprodução abortada pelo usuário.";
+              break;
+            case 2: // MEDIA_ERR_NETWORK
+              errorMessage += "Erro de rede. Verifique sua conexão.";
+              break;
+            case 3: // MEDIA_ERR_DECODE
+              errorMessage += "Erro de decodificação. Arquivo pode estar corrompido.";
+              break;
+            case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+              errorMessage += "Formato de arquivo não suportado ou arquivo não encontrado.";
+              break;
+            default:
+              errorMessage += "Erro desconhecido.";
+          }
+        } else {
+          errorMessage += "Verifique se o arquivo existe e se você tem permissão para acessá-lo.";
+        }
+        onError(errorMessage);
       }
     };
 
@@ -104,6 +133,21 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
     }
   }, [volume, isMuted]);
 
+  // Test function to debug audio URL access
+  const testAudioUrl = async () => {
+    console.log('Testing audio URL access...');
+    try {
+      const response = await fetch(hymn.url, { 
+        method: 'HEAD',
+        mode: 'cors'
+      });
+      console.log('URL test response:', response.status, response.statusText);
+      console.log('Response headers:', [...response.headers.entries()]);
+    } catch (error) {
+      console.error('URL test error:', error);
+    }
+  };
+
   const togglePlayPause = async () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -113,12 +157,37 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
         audio.pause();
         setIsPlaying(false);
       } else {
+        console.log('Attempting to play audio from URL:', hymn.url);
+        console.log('Audio element ready state:', audio.readyState);
+        console.log('Audio element network state:', audio.networkState);
+        console.log('Audio element error:', audio.error);
+        
+        // Check if audio is ready to play
+        if (audio.readyState < 2) {
+          console.log('Audio not ready, waiting for it to load...');
+          await new Promise((resolve, reject) => {
+            const handleCanPlay = () => {
+              audio.removeEventListener('canplay', handleCanPlay);
+              audio.removeEventListener('error', handleError);
+              resolve(true);
+            };
+            const handleError = () => {
+              audio.removeEventListener('canplay', handleCanPlay);
+              audio.removeEventListener('error', handleError);
+              reject(new Error('Audio failed to load'));
+            };
+            audio.addEventListener('canplay', handleCanPlay);
+            audio.addEventListener('error', handleError);
+          });
+        }
+        
         await audio.play();
         setIsPlaying(true);
       }
     } catch (error) {
+      console.error('Audio player error:', error);
       if (onError) {
-        onError("Erro ao reproduzir o áudio.");
+        onError(`Erro ao reproduzir o áudio: ${error.message}`);
       }
     }
   };
@@ -240,6 +309,18 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
             className="text-church-secondary hover:text-church-primary"
           >
             <SkipForward className="h-6 w-6" />
+          </Button>
+        </div>
+
+        {/* Debug Test Button */}
+        <div className="flex justify-center mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={testAudioUrl}
+            className="text-xs"
+          >
+            Testar URL do Áudio
           </Button>
         </div>
 
