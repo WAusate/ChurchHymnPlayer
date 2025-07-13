@@ -13,7 +13,7 @@ interface LayoutProps {
 
 export default function Layout({ 
   children, 
-  title = "Sistema de Hinos", 
+  title = "App Hinos", 
   breadcrumbs, 
   showBackButton = false,
   onBackClick 
