@@ -78,9 +78,7 @@ export default function Home() {
                             {organ.name}
                           </h3>
                         </div>
-                        <p className="text-church-text opacity-75 text-sm">
-                          {organ.description}
-                        </p>
+                        
                       </div>
                       <ChevronRight className="text-church-accent text-lg opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5" />
                     </div>
