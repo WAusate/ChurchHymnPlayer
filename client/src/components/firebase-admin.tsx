@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,13 +9,7 @@ import { addHymn } from '@/lib/firebaseService';
 import { organs } from '@/lib/organs';
 import { Upload, Loader2, AlertCircle } from 'lucide-react';
 import { safeGetElement, safeDispatchEvent } from '@/lib/dom-utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SafeSelect, SafeSelectItem } from '@/components/ui/safe-select';
 import { Progress } from '@/components/ui/progress';
 
 export default function FirebaseAdmin() {
@@ -26,40 +21,63 @@ export default function FirebaseAdmin() {
   const [uploadStatus, setUploadStatus] = useState('');
   const { toast } = useToast();
 
+  // Protected callback for organ selection to avoid DOM errors
+  const handleOrgaoChange = React.useCallback((value: string) => {
+    try {
+      setOrgao(value);
+    } catch (error) {
+      // Silently handle state update errors
+      console.warn('Organ selection error:', error);
+    }
+  }, []);
+
   // Maximum file size: 10MB
   const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('audio/')) {
-        toast({
-          title: "Erro",
-          description: "Por favor, selecione um arquivo de áudio válido.",
-          variant: "destructive",
-        });
-        return;
-      }
+  const handleFileChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files?.[0];
+      if (file) {
+        // Validate file type
+        if (!file.type.startsWith('audio/')) {
+          toast({
+            title: "Erro",
+            description: "Por favor, selecione um arquivo de áudio válido.",
+            variant: "destructive",
+          });
+          return;
+        }
 
-      // Validate file size (10MB limit)
-      if (file.size > MAX_FILE_SIZE) {
-        toast({
-          title: "Arquivo muito grande",
-          description: `O arquivo deve ter no máximo ${Math.round(MAX_FILE_SIZE / (1024 * 1024))}MB. Arquivo atual: ${Math.round(file.size / (1024 * 1024))}MB`,
-          variant: "destructive",
-        });
-        return;
-      }
+        // Validate file size (10MB limit)
+        if (file.size > MAX_FILE_SIZE) {
+          toast({
+            title: "Arquivo muito grande",
+            description: `O arquivo deve ter no máximo ${Math.round(MAX_FILE_SIZE / (1024 * 1024))}MB. Arquivo atual: ${Math.round(file.size / (1024 * 1024))}MB`,
+            variant: "destructive",
+          });
+          return;
+        }
 
-      setAudioFile(file);
-      setUploadProgress(0);
-      setUploadStatus('');
+        setAudioFile(file);
+        setUploadProgress(0);
+        setUploadStatus('');
+      }
+    } catch (error) {
+      console.warn('File change error:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao processar o arquivo selecionado.",
+        variant: "destructive",
+      });
     }
-  };
+  }, [toast, MAX_FILE_SIZE]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = React.useCallback(async (event: React.FormEvent) => {
+    try {
+      event.preventDefault();
+    } catch (error) {
+      console.warn('Form submit prevent default error:', error);
+    }
     
     if (!titulo || !orgao || !audioFile) {
       toast({
@@ -122,7 +140,7 @@ export default function FirebaseAdmin() {
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [titulo, orgao, audioFile, toast]);
 
   return (
     <Card className="w-full max-w-md">
@@ -145,18 +163,13 @@ export default function FirebaseAdmin() {
           
           <div>
             <Label htmlFor="orgao">Órgão</Label>
-            <Select value={orgao} onValueChange={setOrgao}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o órgão" />
-              </SelectTrigger>
-              <SelectContent>
-                {organs.map((organ) => (
-                  <SelectItem key={organ.key} value={organ.name}>
-                    {organ.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SafeSelect value={orgao} onValueChange={handleOrgaoChange} placeholder="Selecione o órgão">
+              {organs.map((organ) => (
+                <SafeSelectItem key={organ.key} value={organ.name}>
+                  {organ.name}
+                </SafeSelectItem>
+              ))}
+            </SafeSelect>
           </div>
           
           <div>
