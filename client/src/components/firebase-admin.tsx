@@ -104,27 +104,22 @@ export default function FirebaseAdmin() {
       setUploadProgress(100);
       setUploadStatus('Upload concluído!');
       
-      // Success toast with delay to prevent DOM conflicts
-      setTimeout(() => {
-        toast({
-          title: "Sucesso",
-          description: "Hino adicionado com sucesso!",
-        });
-      }, 100);
+      // Success toast - immediate feedback
+      toast({
+        title: "Sucesso",
+        description: "Hino adicionado com sucesso!",
+      });
       
-      // Reset form state in batches to prevent React conflict
+      // Reset form state with minimal delay to prevent React conflict
       setTimeout(() => {
         setTitulo('');
         setOrgao('');
         setAudioFile(null);
-      }, 150);
-      
-      setTimeout(() => {
         setUploadProgress(0);
         setUploadStatus('');
-      }, 200);
+      }, 50);
       
-      // Reset file input safely with longer delay
+      // Reset file input safely
       setTimeout(() => {
         try {
           const fileInput = safeGetElement('audioFile') as HTMLInputElement;
@@ -134,16 +129,16 @@ export default function FirebaseAdmin() {
         } catch (error) {
           console.warn('File input reset error:', error);
         }
-      }, 250);
+      }, 100);
       
-      // Trigger refresh event with significant delay to prevent DOM conflicts
+      // Trigger refresh event to update hymn list
       setTimeout(() => {
         try {
           safeDispatchEvent('hymn-added', { docId, orgao });
         } catch (error) {
           console.warn('Event dispatch error:', error);
         }
-      }, 300);
+      }, 150);
       
     } catch (error: any) {
       console.error('Error adding hymn:', error);
@@ -159,10 +154,8 @@ export default function FirebaseAdmin() {
         variant: "destructive",
       });
     } finally {
-      // Reset uploading state with delay to prevent state conflicts
-      setTimeout(() => {
-        setIsUploading(false);
-      }, 400);
+      // Reset uploading state 
+      setIsUploading(false);
     }
   }, [titulo, orgao, audioFile, toast]);
 
