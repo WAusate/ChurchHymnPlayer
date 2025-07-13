@@ -46,18 +46,7 @@ export function FirebaseConfigWarning() {
   const { hasConfig, missingVars } = useFirebaseConfigCheck();
 
   if (hasConfig) {
-    return (
-      <Card className="border-green-200 bg-green-50">
-        <CardContent className="p-4">
-          <div className="flex items-center space-x-2">
-            <CheckCircle className="h-5 w-5 text-green-600" />
-            <span className="text-green-800 font-medium">
-              Firebase configurado corretamente
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return null; // Don't show anything when Firebase is configured
   }
 
   return (
