@@ -21,9 +21,9 @@ export const organs: OrganData[] = [
   },
   {
     key: "proat",
-    name: "Proat",
-    description: "Programa de Oração",
-    icon: "heart-handshake"
+    name: "PROATI",
+    description: "Programa de Orientação à Terceira Idade",
+    icon: "user-check"
   },
   {
     key: "uniao-adolescentes",

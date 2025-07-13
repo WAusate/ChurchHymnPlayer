@@ -50,7 +50,8 @@ export default function Home() {
               variant="outline"
               size="sm"
               onClick={() => navigate("/admin")}
-              className="border-church-secondary text-church-secondary hover:bg-church-secondary hover:text-white"
+              className="border-church-secondary text-church-secondary hover:bg-church-secondary hover:text-white px-4 py-2 rounded-lg"
+              style={{ minHeight: '40px', fontSize: '16px' }}
             >
               Admin
             </Button>
@@ -65,22 +66,19 @@ export default function Home() {
               <Button
                 key={organ.key}
                 variant="ghost"
-                className="h-auto p-0"
+                className="h-auto p-0 min-h-[80px]"
                 onClick={() => handleOrganSelect(organ.key)}
               >
-                <Card className="w-full bg-white hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-church-secondary group">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="text-left">
-                        <div className="flex items-center mb-2">
-                          <IconComponent className="text-church-primary text-2xl mr-3 h-6 w-6" />
-                          <h3 className="text-xl font-semibold text-church-primary group-hover:text-church-secondary">
-                            {organ.name}
-                          </h3>
-                        </div>
-                        
+                <Card className="w-full bg-white hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-church-secondary group active:scale-95">
+                  <CardContent className="p-6 min-h-[80px] flex items-center">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="text-left flex items-center">
+                        <IconComponent className="text-church-secondary mr-4 h-8 w-8" />
+                        <h3 className="text-lg font-semibold text-church-primary group-hover:text-church-secondary text-center md:text-left" style={{ fontSize: '16px', fontWeight: '600' }}>
+                          {organ.name}
+                        </h3>
                       </div>
-                      <ChevronRight className="text-church-accent text-lg opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5" />
+                      <ChevronRight className="text-church-accent opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6" />
                     </div>
                   </CardContent>
                 </Card>

@@ -24,12 +24,12 @@
   --ring: hsl(210, 11%, 17%);
   --radius: 0.5rem;
   
-  /* Church color palette */
-  --church-primary: hsl(194, 100%, 19%);
-  --church-secondary: hsl(198, 59%, 42%);
-  --church-light: hsl(196, 71%, 81%);
-  --church-accent: hsl(48, 100%, 63%);
-  --church-bg: hsl(214, 32%, 97%);
+  /* Church color palette - Updated */
+  --church-primary: hsl(215, 71%, 16%);  /* #0F2247 - Azul escuro */
+  --church-secondary: hsl(196, 86%, 58%); /* #4DB4E7 - Azul claro */
+  --church-light: hsl(0, 0%, 100%);       /* #FFFFFF - Branco */
+  --church-accent: hsl(196, 86%, 58%);    /* #4DB4E7 - Azul claro */
+  --church-bg: hsl(0, 0%, 100%);          /* #FFFFFF - Branco */
   --church-text: hsl(0, 0%, 17%);
 }
 
@@ -62,13 +62,47 @@
   }
 
   body {
-    @apply font-sans antialiased bg-church-bg text-church-text;
+    @apply antialiased bg-church-bg text-church-text;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
   }
 }
 
 /* Custom church theme classes */
 .bg-church-primary {
   background-color: var(--church-primary);
+}
+
+/* Mobile-first improvements */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .grid {
+    gap: 1rem;
+  }
+  
+  button {
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+  }
+  
+  h1, h2, h3 {
+    text-align: center;
+  }
+}
+
+/* Button hover effects */
+.group:hover {
+  transform: translateY(-2px);
+}
+
+.group:active {
+  transform: translateY(0);
 }
 
 .bg-church-secondary {
