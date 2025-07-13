@@ -30,15 +30,22 @@ const ProtectedForm = ({ onSubmit, children, className }: ProtectedFormProps) =>
     setIsSubmitting(true)
 
     try {
-      // Call the original onSubmit handler
-      onSubmit(event)
+      // Use requestAnimationFrame to prevent DOM manipulation conflicts
+      requestAnimationFrame(() => {
+        try {
+          // Call the original onSubmit handler
+          onSubmit(event)
+        } catch (error) {
+          console.error('Protected form submit error:', error)
+        }
+      })
     } catch (error) {
-      console.error('Protected form submit error:', error)
+      console.error('Protected form RAF error:', error)
     } finally {
-      // Reset submitting state after a delay to prevent rapid re-submissions
+      // Reset submitting state after a longer delay to prevent rapid re-submissions and DOM conflicts
       setTimeout(() => {
         setIsSubmitting(false)
-      }, 1000)
+      }, 1500)
     }
   }, [onSubmit, isSubmitting])
 

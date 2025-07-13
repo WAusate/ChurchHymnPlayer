@@ -63,14 +63,14 @@ export function useHymns(organKey: string) {
   // Listen for hymn-added events to trigger refresh
   useEffect(() => {
     const handleHymnAdded = (event: CustomEvent) => {
-      // Add delay to prevent DOM conflicts during form reset
+      // Add significant delay to prevent DOM conflicts during form reset
       setTimeout(() => {
         try {
           setRefreshTrigger(prev => prev + 1);
         } catch (error) {
           console.warn('Hymn refresh trigger error:', error);
         }
-      }, 200);
+      }, 500);
     };
 
     safeAddEventListener(window, 'hymn-added' as keyof WindowEventMap, handleHymnAdded as any);

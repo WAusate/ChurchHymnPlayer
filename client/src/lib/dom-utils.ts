@@ -53,11 +53,18 @@ export function safeGetElement(id: string): HTMLElement | null {
 }
 
 /**
- * Safely dispatch custom events
+ * Safely dispatch custom events with additional DOM manipulation protection
  */
 export function safeDispatchEvent(eventName: string, detail?: any): void {
   try {
-    window.dispatchEvent(new CustomEvent(eventName, { detail }));
+    // Use requestAnimationFrame to avoid DOM manipulation conflicts
+    requestAnimationFrame(() => {
+      try {
+        window.dispatchEvent(new CustomEvent(eventName, { detail }));
+      } catch (error) {
+        console.warn(`Failed to dispatch event ${eventName} (RAF):`, error);
+      }
+    });
   } catch (error) {
     console.warn(`Failed to dispatch event ${eventName}:`, error);
   }

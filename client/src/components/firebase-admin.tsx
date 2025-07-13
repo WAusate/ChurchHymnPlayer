@@ -104,19 +104,27 @@ export default function FirebaseAdmin() {
       setUploadProgress(100);
       setUploadStatus('Upload concluído!');
       
-      toast({
-        title: "Sucesso",
-        description: "Hino adicionado com sucesso!",
-      });
+      // Success toast with delay to prevent DOM conflicts
+      setTimeout(() => {
+        toast({
+          title: "Sucesso",
+          description: "Hino adicionado com sucesso!",
+        });
+      }, 100);
       
-      // Reset form
-      setTitulo('');
-      setOrgao('');
-      setAudioFile(null);
-      setUploadProgress(0);
-      setUploadStatus('');
+      // Reset form state in batches to prevent React conflict
+      setTimeout(() => {
+        setTitulo('');
+        setOrgao('');
+        setAudioFile(null);
+      }, 150);
       
-      // Reset file input safely with delay to prevent DOM conflicts
+      setTimeout(() => {
+        setUploadProgress(0);
+        setUploadStatus('');
+      }, 200);
+      
+      // Reset file input safely with longer delay
       setTimeout(() => {
         try {
           const fileInput = safeGetElement('audioFile') as HTMLInputElement;
@@ -126,17 +134,16 @@ export default function FirebaseAdmin() {
         } catch (error) {
           console.warn('File input reset error:', error);
         }
-      }, 50);
+      }, 250);
       
-      // Trigger a refresh of hymn data in the parent component safely
-      // Use setTimeout to prevent immediate DOM manipulation conflicts
+      // Trigger refresh event with significant delay to prevent DOM conflicts
       setTimeout(() => {
         try {
           safeDispatchEvent('hymn-added', { docId, orgao });
         } catch (error) {
           console.warn('Event dispatch error:', error);
         }
-      }, 100);
+      }, 300);
       
     } catch (error: any) {
       console.error('Error adding hymn:', error);
@@ -152,7 +159,10 @@ export default function FirebaseAdmin() {
         variant: "destructive",
       });
     } finally {
-      setIsUploading(false);
+      // Reset uploading state with delay to prevent state conflicts
+      setTimeout(() => {
+        setIsUploading(false);
+      }, 400);
     }
   }, [titulo, orgao, audioFile, toast]);
 
