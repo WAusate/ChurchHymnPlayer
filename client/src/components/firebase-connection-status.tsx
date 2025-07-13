@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff, Cloud, HardDrive, Database } from 'lucide-react';
+import { safeAddEventListener, safeRemoveEventListener } from '@/lib/dom-utils';
 
 // Firebase service with fallback
 import * as firebaseStub from '@/lib/firebaseService.stub';
@@ -31,15 +32,15 @@ export default function FirebaseConnectionStatus() {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    safeAddEventListener(window, 'online', handleOnline);
+    safeAddEventListener(window, 'offline', handleOffline);
 
     setHasOffline(firebaseService.hasOfflineData());
     setLastSync(firebaseService.getLastSyncDate());
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      safeRemoveEventListener(window, 'online', handleOnline);
+      safeRemoveEventListener(window, 'offline', handleOffline);
     };
   }, []);
 

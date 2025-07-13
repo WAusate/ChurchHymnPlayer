@@ -230,21 +230,39 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
           
           await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-              audio.removeEventListener('canplay', handleCanPlay);
-              audio.removeEventListener('error', handleError);
+              try {
+                if (audio && audio.parentNode) {
+                  audio.removeEventListener('canplay', handleCanPlay);
+                  audio.removeEventListener('error', handleError);
+                }
+              } catch (error) {
+                console.warn('Audio timeout cleanup error:', error);
+              }
               reject(new Error('Audio load timeout'));
             }, 10000); // 10 second timeout
             
             const handleCanPlay = () => {
               clearTimeout(timeout);
-              audio.removeEventListener('canplay', handleCanPlay);
-              audio.removeEventListener('error', handleError);
+              try {
+                if (audio && audio.parentNode) {
+                  audio.removeEventListener('canplay', handleCanPlay);
+                  audio.removeEventListener('error', handleError);
+                }
+              } catch (error) {
+                console.warn('Audio event cleanup error:', error);
+              }
               resolve(true);
             };
             const handleError = (e: Event) => {
               clearTimeout(timeout);
-              audio.removeEventListener('canplay', handleCanPlay);
-              audio.removeEventListener('error', handleError);
+              try {
+                if (audio && audio.parentNode) {
+                  audio.removeEventListener('canplay', handleCanPlay);
+                  audio.removeEventListener('error', handleError);
+                }
+              } catch (error) {
+                console.warn('Audio event cleanup error:', error);
+              }
               console.error('Audio load error in promise:', e);
               reject(new Error('Audio failed to load'));
             };
