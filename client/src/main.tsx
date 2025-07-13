@@ -12,5 +12,11 @@ if (import.meta.env.DEV) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Safely create root with error handling
+const rootElement = document.getElementById("root");
+if (rootElement) {
+  createRoot(rootElement).render(<App />);
+} else {
+  console.error('Root element not found. Make sure there is a div with id="root" in your HTML.');
+}
 

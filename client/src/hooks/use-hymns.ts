@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { HymnData } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
+import { safeAddEventListener, safeRemoveEventListener } from '@/lib/dom-utils';
 
 // Firebase imports with error handling
 import * as firebaseStub from '@/lib/firebaseService.stub';
@@ -50,12 +51,12 @@ export function useHymns(organKey: string) {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    safeAddEventListener(window, 'online', handleOnline);
+    safeAddEventListener(window, 'offline', handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      safeRemoveEventListener(window, 'online', handleOnline);
+      safeRemoveEventListener(window, 'offline', handleOffline);
     };
   }, []);
 
@@ -65,10 +66,10 @@ export function useHymns(organKey: string) {
       setRefreshTrigger(prev => prev + 1);
     };
 
-    window.addEventListener('hymn-added', handleHymnAdded as EventListener);
+    safeAddEventListener(window, 'hymn-added' as keyof WindowEventMap, handleHymnAdded as any);
 
     return () => {
-      window.removeEventListener('hymn-added', handleHymnAdded as EventListener);
+      safeRemoveEventListener(window, 'hymn-added' as keyof WindowEventMap, handleHymnAdded as any);
     };
   }, []);
 

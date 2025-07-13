@@ -12,7 +12,14 @@ export function useIsMobile() {
     }
     mql.addEventListener("change", onChange)
     setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
+    return () => {
+      try {
+        mql.removeEventListener("change", onChange);
+      } catch (error) {
+        // Silently handle cleanup errors in production
+        console.warn('Media query cleanup error:', error);
+      }
+    }
   }, [])
 
   return !!isMobile

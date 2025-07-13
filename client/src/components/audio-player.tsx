@@ -148,12 +148,20 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
     audio.addEventListener("canplay", handleCanPlay);
 
     return () => {
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("ended", handleEnded);
-      audio.removeEventListener("error", handleError);
-      audio.removeEventListener("loadstart", handleLoadStart);
-      audio.removeEventListener("canplay", handleCanPlay);
+      // Safely remove event listeners only if audio element still exists
+      if (audio && audio.parentNode) {
+        try {
+          audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+          audio.removeEventListener("timeupdate", handleTimeUpdate);
+          audio.removeEventListener("ended", handleEnded);
+          audio.removeEventListener("error", handleError);
+          audio.removeEventListener("loadstart", handleLoadStart);
+          audio.removeEventListener("canplay", handleCanPlay);
+        } catch (error) {
+          // Silently handle cleanup errors in production
+          console.warn('Audio cleanup error:', error);
+        }
+      }
     };
   }, [hymn.url, onError]);
 

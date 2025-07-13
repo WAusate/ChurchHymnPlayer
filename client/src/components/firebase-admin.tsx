@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addHymn } from '@/lib/firebaseService';
 import { organs } from '@/lib/organs';
 import { Upload, Loader2, AlertCircle } from 'lucide-react';
+import { safeGetElement, safeDispatchEvent } from '@/lib/dom-utils';
 import {
   Select,
   SelectContent,
@@ -96,17 +97,14 @@ export default function FirebaseAdmin() {
       setUploadProgress(0);
       setUploadStatus('');
       
-      // Reset file input
-      const fileInput = document.getElementById('audioFile') as HTMLInputElement;
-      if (fileInput) {
+      // Reset file input safely
+      const fileInput = safeGetElement('audioFile') as HTMLInputElement;
+      if (fileInput && fileInput.parentNode) {
         fileInput.value = '';
       }
       
-      // Trigger a refresh of hymn data in the parent component
-      // This will update the hymn list automatically
-      window.dispatchEvent(new CustomEvent('hymn-added', { 
-        detail: { docId, orgao } 
-      }));
+      // Trigger a refresh of hymn data in the parent component safely
+      safeDispatchEvent('hymn-added', { docId, orgao });
       
     } catch (error: any) {
       console.error('Error adding hymn:', error);
