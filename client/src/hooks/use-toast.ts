@@ -172,14 +172,21 @@ function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
   React.useEffect(() => {
-    listeners.push(setState)
+    const safeSetState = (newState: State) => {
+      // Use requestAnimationFrame to prevent DOM manipulation conflicts
+      requestAnimationFrame(() => {
+        setState(newState)
+      })
+    }
+    
+    listeners.push(safeSetState)
     return () => {
-      const index = listeners.indexOf(setState)
+      const index = listeners.indexOf(safeSetState)
       if (index > -1) {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, [])
 
   return {
     ...state,

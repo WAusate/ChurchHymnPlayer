@@ -104,20 +104,25 @@ export default function FirebaseAdmin() {
       setUploadProgress(100);
       setUploadStatus('Upload concluído!');
       
-      // Success toast - immediate feedback
-      toast({
-        title: "Sucesso",
-        description: "Hino adicionado com sucesso!",
+      // Success toast with delay to prevent DOM conflicts
+      requestAnimationFrame(() => {
+        toast({
+          title: "Sucesso",
+          description: "Hino adicionado com sucesso!",
+        });
       });
       
-      // Reset form state with minimal delay to prevent React conflict
+      // Reset form state with staggered timing to prevent React conflicts
       setTimeout(() => {
         setTitulo('');
         setOrgao('');
         setAudioFile(null);
+      }, 100);
+      
+      setTimeout(() => {
         setUploadProgress(0);
         setUploadStatus('');
-      }, 50);
+      }, 150);
       
       // Reset file input safely
       setTimeout(() => {
@@ -129,16 +134,16 @@ export default function FirebaseAdmin() {
         } catch (error) {
           console.warn('File input reset error:', error);
         }
-      }, 100);
+      }, 200);
       
-      // Trigger refresh event to update hymn list
+      // Trigger refresh event to update hymn list with significant delay
       setTimeout(() => {
         try {
           safeDispatchEvent('hymn-added', { docId, orgao });
         } catch (error) {
           console.warn('Event dispatch error:', error);
         }
-      }, 150);
+      }, 300);
       
     } catch (error: any) {
       console.error('Error adding hymn:', error);

@@ -104,7 +104,7 @@ export default function HymnList({ organKey }: HymnListProps) {
               <div className="space-y-3">
                 {hymns.map((hymn, index) => (
                   <Button
-                    key={index}
+                    key={`hymn-${index}-${hymn.titulo}`}
                     variant="ghost"
                     className="w-full h-auto p-0"
                     onClick={() => handleHymnSelect(index)}
