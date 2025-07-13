@@ -11,6 +11,7 @@ import { Upload, Loader2, AlertCircle } from 'lucide-react';
 import { safeGetElement, safeDispatchEvent } from '@/lib/dom-utils';
 import { SafeSelect, SafeSelectItem } from '@/components/ui/safe-select';
 import { Progress } from '@/components/ui/progress';
+import { ProtectedForm } from '@/components/protected-form';
 
 export default function FirebaseAdmin() {
   const [titulo, setTitulo] = useState('');
@@ -115,14 +116,27 @@ export default function FirebaseAdmin() {
       setUploadProgress(0);
       setUploadStatus('');
       
-      // Reset file input safely
-      const fileInput = safeGetElement('audioFile') as HTMLInputElement;
-      if (fileInput && fileInput.parentNode) {
-        fileInput.value = '';
-      }
+      // Reset file input safely with delay to prevent DOM conflicts
+      setTimeout(() => {
+        try {
+          const fileInput = safeGetElement('audioFile') as HTMLInputElement;
+          if (fileInput && fileInput.parentNode) {
+            fileInput.value = '';
+          }
+        } catch (error) {
+          console.warn('File input reset error:', error);
+        }
+      }, 50);
       
       // Trigger a refresh of hymn data in the parent component safely
-      safeDispatchEvent('hymn-added', { docId, orgao });
+      // Use setTimeout to prevent immediate DOM manipulation conflicts
+      setTimeout(() => {
+        try {
+          safeDispatchEvent('hymn-added', { docId, orgao });
+        } catch (error) {
+          console.warn('Event dispatch error:', error);
+        }
+      }, 100);
       
     } catch (error: any) {
       console.error('Error adding hymn:', error);
@@ -148,14 +162,20 @@ export default function FirebaseAdmin() {
         <CardTitle className="text-church-primary">Adicionar Hino</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <ProtectedForm onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="titulo">Título do Hino</Label>
             <Input
               id="titulo"
               type="text"
               value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
+              onChange={(e) => {
+                try {
+                  setTitulo(e.target.value);
+                } catch (error) {
+                  console.warn('Title change error:', error);
+                }
+              }}
               placeholder="Digite o título do hino"
               required
             />
@@ -223,7 +243,7 @@ export default function FirebaseAdmin() {
               </>
             )}
           </Button>
-        </form>
+        </ProtectedForm>
       </CardContent>
     </Card>
   );

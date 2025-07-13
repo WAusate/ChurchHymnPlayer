@@ -30,53 +30,74 @@ const SafeSelectContext = React.createContext<{
 
 const SafeSelect = ({ value, onValueChange, placeholder, children, className }: SafeSelectProps) => {
   const [isOpen, setIsOpen] = React.useState(false)
+  const [isMounted, setIsMounted] = React.useState(false)
   const selectRef = React.useRef<HTMLDivElement>(null)
+  const cleanupRef = React.useRef<Array<() => void>>([])
+
+  // Track mounting state to prevent cleanup errors
+  React.useEffect(() => {
+    setIsMounted(true)
+    return () => {
+      setIsMounted(false)
+      // Clean up all event listeners safely
+      cleanupRef.current.forEach(cleanup => {
+        try {
+          cleanup()
+        } catch (error) {
+          console.warn('Select cleanup error:', error)
+        }
+      })
+      cleanupRef.current = []
+    }
+  }, [])
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
+    if (!isMounted) return
+
     const handleClickOutside = (event: MouseEvent) => {
       try {
         if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
-          setIsOpen(false)
+          if (isMounted) {
+            setIsOpen(false)
+          }
         }
       } catch (error) {
         // Silently handle DOM access errors
         console.warn('Select click outside error:', error)
-        setIsOpen(false)
+        if (isMounted) {
+          setIsOpen(false)
+        }
       }
     }
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside)
-      return () => {
-        try {
-          document.removeEventListener('mousedown', handleClickOutside)
-        } catch (error) {
-          console.warn('Select cleanup error:', error)
-        }
-      }
+      const cleanup = () => document.removeEventListener('mousedown', handleClickOutside)
+      cleanupRef.current.push(cleanup)
+      
+      return cleanup
     }
-  }, [isOpen])
+  }, [isOpen, isMounted])
 
   // Close dropdown on escape key
   React.useEffect(() => {
+    if (!isMounted) return
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && isMounted) {
         setIsOpen(false)
       }
     }
 
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown)
-      return () => {
-        try {
-          document.removeEventListener('keydown', handleKeyDown)
-        } catch (error) {
-          console.warn('Select keyboard cleanup error:', error)
-        }
-      }
+      const cleanup = () => document.removeEventListener('keydown', handleKeyDown)
+      cleanupRef.current.push(cleanup)
+      
+      return cleanup
     }
-  }, [isOpen])
+  }, [isOpen, isMounted])
 
   const contextValue = React.useMemo(() => ({
     value,
@@ -102,13 +123,13 @@ const SafeSelect = ({ value, onValueChange, placeholder, children, className }: 
 const SafeSelectTrigger = ({ placeholder }: { placeholder?: string }) => {
   const { value, isOpen, setIsOpen } = React.useContext(SafeSelectContext)
 
-  const handleClick = () => {
+  const handleClick = React.useCallback(() => {
     try {
       setIsOpen(!isOpen)
     } catch (error) {
       console.warn('Select trigger error:', error)
     }
-  }
+  }, [isOpen, setIsOpen])
 
   return (
     <button
@@ -147,14 +168,21 @@ const SafeSelectItem = ({ value, children, className }: SafeSelectItemProps) => 
   const { value: selectedValue, onValueChange, setIsOpen } = React.useContext(SafeSelectContext)
   const isSelected = value === selectedValue
 
-  const handleClick = () => {
+  const handleClick = React.useCallback(() => {
     try {
-      onValueChange?.(value)
-      setIsOpen(false)
+      // Use setTimeout to prevent immediate state conflicts
+      setTimeout(() => {
+        try {
+          onValueChange?.(value)
+          setIsOpen(false)
+        } catch (error) {
+          console.warn('Select item delayed error:', error)
+        }
+      }, 0)
     } catch (error) {
       console.warn('Select item error:', error)
     }
-  }
+  }, [value, onValueChange, setIsOpen])
 
   return (
     <div
