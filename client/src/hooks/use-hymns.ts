@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { HymnData } from '@shared/schema';
-import { useToast } from '@/hooks/use-toast';
+import { useSafeToast } from '@/components/safe-toast-provider';
 // Remove DOM utils import as we're eliminating direct DOM manipulation
 
 // Firebase imports with error handling
@@ -44,7 +44,7 @@ export function useHymns(organKey: string) {
   const [fallbackData, setFallbackData] = useState<HymnData[]>([]);
   const [loadingFallback, setLoadingFallback] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const { toast } = useToast();
+  const { showToast } = useSafeToast();
 
   // Monitor online status
   useEffect(() => {
@@ -103,13 +103,13 @@ export function useHymns(organKey: string) {
         try {
           setIsInitialized(true);
           await firebaseService.initializeOfflineData();
-          toast({
+          showToast({
             title: "Dados sincronizados",
             description: "Hinos baixados para uso offline.",
           });
         } catch (error) {
           console.error('Failed to initialize offline data:', error);
-          toast({
+          showToast({
             title: "Erro na sincronização",
             description: "Não foi possível baixar os dados para uso offline.",
             variant: "destructive",

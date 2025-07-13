@@ -4,7 +4,7 @@ import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import { FirebaseConfigWarning } from "@/lib/firebase-check";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useSafeToast } from "@/components/safe-toast-provider";
 import { useState } from "react";
 import { Download, Database, Loader2 } from "lucide-react";
 
@@ -30,11 +30,11 @@ hasFirebaseService = Object.values(firebaseConfig).every(
 
 export default function Admin() {
   const [isSyncing, setIsSyncing] = useState(false);
-  const { toast } = useToast();
+  const { showToast } = useSafeToast();
 
   const handleSyncOfflineData = async () => {
     if (!hasFirebaseService) {
-      toast({
+      showToast({
         title: "Firebase não configurado",
         description: "Configure o Firebase para usar a sincronização offline.",
         variant: "destructive",
@@ -45,13 +45,13 @@ export default function Admin() {
     setIsSyncing(true);
     try {
       await firebaseService.initializeOfflineData();
-      toast({
+      showToast({
         title: "Sincronização concluída",
         description: "Dados baixados para uso offline.",
       });
     } catch (error) {
       console.error("Sync error:", error);
-      toast({
+      showToast({
         title: "Erro na sincronização",
         description: "Não foi possível sincronizar os dados.",
         variant: "destructive",
