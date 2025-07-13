@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { HymnData } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
-import { safeAddEventListener, safeRemoveEventListener } from '@/lib/dom-utils';
+// Remove DOM utils import as we're eliminating direct DOM manipulation
 
 // Firebase imports with error handling
 import * as firebaseStub from '@/lib/firebaseService.stub';
@@ -51,32 +51,26 @@ export function useHymns(organKey: string) {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    safeAddEventListener(window, 'online', handleOnline);
-    safeAddEventListener(window, 'offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     return () => {
-      safeRemoveEventListener(window, 'online', handleOnline);
-      safeRemoveEventListener(window, 'offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
   // Listen for hymn-added events to trigger refresh
   useEffect(() => {
     const handleHymnAdded = (event: CustomEvent) => {
-      // Add moderate delay to prevent DOM conflicts during form reset
-      setTimeout(() => {
-        try {
-          setRefreshTrigger(prev => prev + 1);
-        } catch (error) {
-          console.warn('Hymn refresh trigger error:', error);
-        }
-      }, 200);
+      // Immediate refresh without delays
+      setRefreshTrigger(prev => prev + 1);
     };
 
-    safeAddEventListener(window, 'hymn-added' as keyof WindowEventMap, handleHymnAdded as any);
+    window.addEventListener('hymn-added', handleHymnAdded as any);
 
     return () => {
-      safeRemoveEventListener(window, 'hymn-added' as keyof WindowEventMap, handleHymnAdded as any);
+      window.removeEventListener('hymn-added', handleHymnAdded as any);
     };
   }, []);
 

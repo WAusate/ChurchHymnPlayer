@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { useSafeToast } from '@/components/safe-toast-provider';
 import { addHymn } from '@/lib/firebaseService';
 import { organs } from '@/lib/organs';
 import { Upload, Loader2, AlertCircle } from 'lucide-react';
-import { safeGetElement, safeDispatchEvent } from '@/lib/dom-utils';
+// Remove DOM utils import as we're eliminating direct DOM manipulation
 import { SafeSelect, SafeSelectItem } from '@/components/ui/safe-select';
 import { Progress } from '@/components/ui/progress';
 import { ProtectedForm } from '@/components/protected-form';
@@ -20,7 +20,7 @@ export default function FirebaseAdmin() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState('');
-  const { toast } = useToast();
+  const { showToast } = useSafeToast();
 
   // Protected callback for organ selection to avoid DOM errors
   const handleOrgaoChange = React.useCallback((value: string) => {
@@ -41,7 +41,7 @@ export default function FirebaseAdmin() {
       if (file) {
         // Validate file type
         if (!file.type.startsWith('audio/')) {
-          toast({
+          showToast({
             title: "Erro",
             description: "Por favor, selecione um arquivo de áudio válido.",
             variant: "destructive",
@@ -51,7 +51,7 @@ export default function FirebaseAdmin() {
 
         // Validate file size (10MB limit)
         if (file.size > MAX_FILE_SIZE) {
-          toast({
+          showToast({
             title: "Arquivo muito grande",
             description: `O arquivo deve ter no máximo ${Math.round(MAX_FILE_SIZE / (1024 * 1024))}MB. Arquivo atual: ${Math.round(file.size / (1024 * 1024))}MB`,
             variant: "destructive",
@@ -65,7 +65,7 @@ export default function FirebaseAdmin() {
       }
     } catch (error) {
       console.warn('File change error:', error);
-      toast({
+      showToast({
         title: "Erro",
         description: "Erro ao processar o arquivo selecionado.",
         variant: "destructive",
@@ -81,7 +81,7 @@ export default function FirebaseAdmin() {
     }
     
     if (!titulo || !orgao || !audioFile) {
-      toast({
+      showToast({
         title: "Erro",
         description: "Por favor, preencha todos os campos.",
         variant: "destructive",
@@ -104,53 +104,34 @@ export default function FirebaseAdmin() {
       setUploadProgress(100);
       setUploadStatus('Upload concluído!');
       
-      // Success toast with delay to prevent DOM conflicts
-      requestAnimationFrame(() => {
-        toast({
-          title: "Sucesso",
-          description: "Hino adicionado com sucesso!",
-        });
+      // Success toast 
+      showToast({
+        title: "Sucesso",
+        description: "Hino adicionado com sucesso!",
       });
       
-      // Reset form state with staggered timing to prevent React conflicts
-      setTimeout(() => {
-        setTitulo('');
-        setOrgao('');
-        setAudioFile(null);
-      }, 100);
+      // Reset form state cleanly
+      setTitulo('');
+      setOrgao('');
+      setAudioFile(null);
+      setUploadProgress(0);
+      setUploadStatus('');
       
-      setTimeout(() => {
-        setUploadProgress(0);
-        setUploadStatus('');
-      }, 150);
+      // Reset file input using React ref approach
+      const fileInput = document.getElementById('audioFile') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
       
-      // Reset file input safely
-      setTimeout(() => {
-        try {
-          const fileInput = safeGetElement('audioFile') as HTMLInputElement;
-          if (fileInput && fileInput.parentNode) {
-            fileInput.value = '';
-          }
-        } catch (error) {
-          console.warn('File input reset error:', error);
-        }
-      }, 200);
-      
-      // Trigger refresh event to update hymn list with significant delay
-      setTimeout(() => {
-        try {
-          safeDispatchEvent('hymn-added', { docId, orgao });
-        } catch (error) {
-          console.warn('Event dispatch error:', error);
-        }
-      }, 300);
+      // Trigger refresh event immediately
+      window.dispatchEvent(new CustomEvent('hymn-added', { detail: { docId, orgao } }));
       
     } catch (error: any) {
       console.error('Error adding hymn:', error);
       setUploadProgress(0);
       setUploadStatus('');
       
-      toast({
+      showToast({
         title: "Erro",
         description:
           typeof error?.message === 'string'
@@ -162,7 +143,7 @@ export default function FirebaseAdmin() {
       // Reset uploading state 
       setIsUploading(false);
     }
-  }, [titulo, orgao, audioFile, toast]);
+  }, [titulo, orgao, audioFile, showToast]);
 
   return (
     <Card className="w-full max-w-md">

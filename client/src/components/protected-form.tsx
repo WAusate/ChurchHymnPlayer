@@ -19,11 +19,7 @@ const ProtectedForm = ({ onSubmit, children, className }: ProtectedFormProps) =>
   const handleSubmit = React.useCallback((event: React.FormEvent) => {
     // Prevent double submissions
     if (isSubmitting) {
-      try {
-        event.preventDefault()
-      } catch (error) {
-        console.warn('Protected form prevent default error:', error)
-      }
+      event.preventDefault()
       return
     }
 
@@ -35,10 +31,10 @@ const ProtectedForm = ({ onSubmit, children, className }: ProtectedFormProps) =>
     } catch (error) {
       console.error('Protected form submit error:', error)
     } finally {
-      // Reset submitting state after a longer delay to prevent rapid re-submissions and DOM conflicts
+      // Reset submitting state after a reasonable delay
       setTimeout(() => {
         setIsSubmitting(false)
-      }, 1500)
+      }, 1000)
     }
   }, [onSubmit, isSubmitting])
 
