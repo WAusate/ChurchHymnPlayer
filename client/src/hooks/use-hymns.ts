@@ -119,7 +119,7 @@ export function useHymns(organKey: string) {
     };
 
     initializeData();
-  }, [isOnline, isInitialized, toast]);
+  }, [isOnline, isInitialized]);
 
   // Query for online data (only if Firebase is available)
   const onlineQuery = useQuery({
