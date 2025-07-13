@@ -117,14 +117,24 @@ export default function FirebaseAdmin() {
       setUploadProgress(0);
       setUploadStatus('');
       
-      // Reset file input using React ref approach
-      const fileInput = document.getElementById('audioFile') as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = '';
+      // Reset file input safely
+      try {
+        const fileInput = document.getElementById('audioFile') as HTMLInputElement;
+        if (fileInput) {
+          fileInput.value = '';
+        }
+      } catch (error) {
+        console.warn('File input reset error:', error);
       }
       
-      // Trigger refresh event immediately
-      window.dispatchEvent(new CustomEvent('hymn-added', { detail: { docId, orgao } }));
+      // Trigger refresh event safely with timeout
+      setTimeout(() => {
+        try {
+          window.dispatchEvent(new CustomEvent('hymn-added', { detail: { docId, orgao } }));
+        } catch (error) {
+          console.warn('Event dispatch error:', error);
+        }
+      }, 100);
       
     } catch (error: any) {
       console.error('Error adding hymn:', error);

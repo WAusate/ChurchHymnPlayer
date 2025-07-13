@@ -24,19 +24,42 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-hasFirebaseService = Object.values(firebaseConfig).every(
+const hasFirebaseConfig = Object.values(firebaseConfig).every(
   value => value && !String(value).startsWith('your_')
 );
+
+if (hasFirebaseConfig) {
+  try {
+    // Import Firebase service dynamically
+    import('@/lib/firebaseService').then(module => {
+      firebaseService = module;
+      hasFirebaseService = true;
+    }).catch(error => {
+      console.log('Firebase service import failed:', error);
+    });
+  } catch (error) {
+    console.log('Firebase not configured, using fallback mode');
+  }
+}
 
 export default function Admin() {
   const [isSyncing, setIsSyncing] = useState(false);
   const { showToast } = useSafeToast();
 
   const handleSyncOfflineData = async () => {
-    if (!hasFirebaseService) {
+    if (!hasFirebaseConfig) {
       showToast({
         title: "Firebase não configurado",
         description: "Configure o Firebase para usar a sincronização offline.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!hasFirebaseService) {
+      showToast({
+        title: "Firebase não disponível",
+        description: "Aguarde o Firebase carregar e tente novamente.",
         variant: "destructive",
       });
       return;
@@ -79,7 +102,7 @@ export default function Admin() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Add Hymn Card */}
-          {hasFirebaseService ? (
+          {hasFirebaseConfig ? (
             <FirebaseAdmin />
           ) : (
             <Card>
@@ -127,7 +150,7 @@ export default function Admin() {
 
               <Button
                 onClick={handleSyncOfflineData}
-                disabled={isSyncing || !hasFirebaseService}
+                disabled={isSyncing || !hasFirebaseConfig}
                 className="w-full bg-church-secondary hover:bg-church-primary"
               >
                 {isSyncing ? (
