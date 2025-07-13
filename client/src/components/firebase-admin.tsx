@@ -71,7 +71,7 @@ export default function FirebaseAdmin() {
         variant: "destructive",
       });
     }
-  }, [toast, MAX_FILE_SIZE]);
+  }, [showToast, MAX_FILE_SIZE]);
 
   const handleSubmit = React.useCallback(async (event: React.FormEvent) => {
     try {
