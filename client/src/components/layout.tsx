@@ -9,6 +9,7 @@ interface LayoutProps {
   breadcrumbs?: string[];
   showBackButton?: boolean;
   onBackClick?: () => void;
+  showSettingsButton?: boolean;
 }
 
 export default function Layout({ 
@@ -16,7 +17,8 @@ export default function Layout({
   title = "App Hinos", 
   breadcrumbs, 
   showBackButton = false,
-  onBackClick 
+  onBackClick,
+  showSettingsButton = false
 }: LayoutProps) {
   const [location, navigate] = useLocation();
 
@@ -49,17 +51,19 @@ export default function Layout({
               </h1>
             </div>
             {/* Settings button in header */}
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/admin")}
-                className="text-white hover:text-white hover:bg-white/10 p-4 rounded-xl border-2 border-transparent hover:border-white/20"
-                style={{ minHeight: '52px', minWidth: '52px' }}
-              >
-                <Settings className="h-7 w-7" />
-              </Button>
-            </div>
+            {showSettingsButton && (
+              <div className="flex items-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/admin")}
+                  className="text-white hover:text-white hover:bg-white/10 p-5 rounded-xl border-2 border-white/30 hover:border-white/50"
+                  style={{ minHeight: '56px', minWidth: '56px' }}
+                >
+                  <Settings className="h-8 w-8" />
+                </Button>
+              </div>
+            )}
           </div>
           {breadcrumbs && breadcrumbs.length > 0 && (
             <nav className="mt-2 text-church-light text-sm">

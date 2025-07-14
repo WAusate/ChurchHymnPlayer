@@ -34,7 +34,7 @@ export default function Home() {
   };
 
   return (
-    <Layout>
+    <Layout showSettingsButton={true}>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-church-primary mb-2">
