@@ -172,35 +172,6 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
     }
   }, [volume, isMuted]);
 
-  // Test function to debug audio URL access
-  const testAudioUrl = async () => {
-    console.log('Testing audio URL access...');
-    console.log('URL being tested:', hymn.url);
-    try {
-      const response = await fetch(hymn.url, { 
-        method: 'HEAD',
-        mode: 'cors',
-        credentials: 'include'
-      });
-      console.log('URL test response:', response.status, response.statusText);
-      console.log('Response headers:', [...response.headers.entries()]);
-      console.log('Content-Type:', response.headers.get('content-type'));
-      console.log('Content-Length:', response.headers.get('content-length'));
-    } catch (error) {
-      console.error('URL test error:', error);
-      console.log('Trying without CORS...');
-      try {
-        const response2 = await fetch(hymn.url, { 
-          method: 'HEAD',
-          mode: 'no-cors'
-        });
-        console.log('No-CORS test response:', response2.status, response2.type);
-      } catch (error2) {
-        console.error('No-CORS test also failed:', error2);
-      }
-    }
-  };
-
   const togglePlayPause = async () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -403,38 +374,25 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
           </Button>
         </div>
 
-        {/* Debug Test Button */}
-        <div className="flex justify-center mb-4 gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={testAudioUrl}
-            className="text-xs"
-          >
-            Testar URL do Áudio
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const audio = audioRef.current;
-              if (audio) {
-                console.log('Audio element state:', {
-                  src: audio.src,
-                  readyState: audio.readyState,
-                  networkState: audio.networkState,
-                  error: audio.error,
-                  crossOrigin: audio.crossOrigin,
-                  currentTime: audio.currentTime,
-                  duration: audio.duration
-                });
-              }
-            }}
-            className="text-xs"
-          >
-            Debug Audio
-          </Button>
-        </div>
+        {/* Audio Visualizer - appears only while playing */}
+        {isPlaying && (
+          <div className="audio-visualizer flex justify-center items-center mb-4 h-12">
+            <div className="flex items-end space-x-1">
+              {[...Array(15)].map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-gradient-to-t from-church-primary to-church-secondary rounded-t-sm audio-bar"
+                  style={{
+                    width: '4px',
+                    height: `${8 + (i % 3) * 4}px`,
+                    animationDelay: `${i * 0.1}s`,
+                    animationDuration: `${0.5 + (i % 3) * 0.2}s`
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Volume Control */}
         <div className="flex items-center justify-center space-x-3">

@@ -74,6 +74,21 @@
   background-color: var(--church-primary);
 }
 
+/* Audio visualizer animation */
+.audio-bar {
+  animation: audio-bounce infinite ease-in-out;
+  transform-origin: bottom;
+}
+
+@keyframes audio-bounce {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.3);
+  }
+}
+
 /* Mobile-first improvements */
 @media (max-width: 768px) {
   .container {
