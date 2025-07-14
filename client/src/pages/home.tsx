@@ -62,7 +62,7 @@ export default function Home() {
                       <div className="flex items-center justify-between w-full">
                         <div className="text-left flex items-center">
                           <IconComponent className="text-church-secondary mr-4 h-8 w-8" />
-                          <h3 className="text-lg font-semibold text-church-primary group-hover:text-church-secondary text-center md:text-left" style={{ fontSize: '16px', fontWeight: '600' }}>
+                          <h3 className="font-semibold text-church-primary group-hover:text-church-secondary text-center md:text-left text-[18px]" style={{ fontSize: '16px', fontWeight: '600' }}>
                             {organ.name}
                           </h3>
                         </div>
