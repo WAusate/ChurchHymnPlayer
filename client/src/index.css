@@ -83,6 +83,7 @@
   
   .grid {
     gap: 1rem;
+    justify-items: center;
   }
   
   button {
@@ -94,15 +95,54 @@
   h1, h2, h3 {
     text-align: center;
   }
+  
+  /* Centralizar botões em mobile */
+  .grid > button {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
 }
 
-/* Button hover effects */
+/* Enhanced button hover effects */
 .group:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 .group:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+}
+
+/* Card styling improvements */
+.card-organ {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card-organ:hover {
+  border-color: var(--church-secondary);
+  box-shadow: 0 8px 25px rgba(77, 180, 231, 0.2);
+}
+
+/* Button specific improvements */
+.organ-button {
+  padding: 0;
+  width: 100%;
+  min-height: 80px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.organ-button:hover {
+  transform: scale(1.02);
+}
+
+.organ-button:active {
+  transform: scale(0.98);
 }
 
 .bg-church-secondary {

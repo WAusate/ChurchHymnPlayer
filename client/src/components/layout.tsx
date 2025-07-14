@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Church } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -47,9 +47,6 @@ export default function Layout({
               <h1 className="text-xl md:text-2xl font-bold text-white" style={{ fontSize: '20px' }}>
                 {title}
               </h1>
-            </div>
-            <div className="text-white">
-              <Church className="h-8 w-8" />
             </div>
           </div>
           {breadcrumbs && breadcrumbs.length > 0 && (

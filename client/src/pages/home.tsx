@@ -7,22 +7,23 @@ import {
   Users, 
   Music, 
   Baby, 
-  HeartHandshake, 
+  UserCheck, 
   UserPlus, 
   Guitar, 
-  Handshake, 
+  Heart, 
   Flag,
-  ChevronRight 
+  ChevronRight,
+  Settings
 } from "lucide-react";
 
 const iconMap = {
   users: Users,
   music: Music,
   baby: Baby,
-  "heart-handshake": HeartHandshake,
+  "user-check": UserCheck,
   "user-plus": UserPlus,
   guitar: Guitar,
-  handshake: Handshake,
+  heart: Heart,
   flag: Flag,
 };
 
@@ -50,41 +51,43 @@ export default function Home() {
               variant="outline"
               size="sm"
               onClick={() => navigate("/admin")}
-              className="border-church-secondary text-church-secondary hover:bg-church-secondary hover:text-white px-4 py-2 rounded-lg"
-              style={{ minHeight: '40px', fontSize: '16px' }}
+              className="border-church-secondary text-church-secondary hover:bg-church-secondary hover:text-white p-3 rounded-lg"
+              style={{ minHeight: '44px', minWidth: '44px' }}
             >
-              Admin
+              <Settings className="h-5 w-5" />
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-          {organs.map((organ) => {
-            const IconComponent = iconMap[organ.icon as keyof typeof iconMap] || Users;
-            
-            return (
-              <Button
-                key={organ.key}
-                variant="ghost"
-                className="h-auto p-0 min-h-[80px]"
-                onClick={() => handleOrganSelect(organ.key)}
-              >
-                <Card className="w-full bg-white hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-church-secondary group active:scale-95">
-                  <CardContent className="p-6 min-h-[80px] flex items-center">
-                    <div className="flex items-center justify-between w-full">
-                      <div className="text-left flex items-center">
-                        <IconComponent className="text-church-secondary mr-4 h-8 w-8" />
-                        <h3 className="text-lg font-semibold text-church-primary group-hover:text-church-secondary text-center md:text-left" style={{ fontSize: '16px', fontWeight: '600' }}>
-                          {organ.name}
-                        </h3>
+        <div className="flex flex-col items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 w-full max-w-4xl">
+            {organs.map((organ) => {
+              const IconComponent = iconMap[organ.icon as keyof typeof iconMap] || Users;
+              
+              return (
+                <Button
+                  key={organ.key}
+                  variant="ghost"
+                  className="h-auto p-0 min-h-[80px] w-full"
+                  onClick={() => handleOrganSelect(organ.key)}
+                >
+                  <Card className="w-full bg-gradient-to-r from-white to-blue-50 hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-church-secondary group hover:scale-105 active:scale-100 shadow-md">
+                    <CardContent className="p-6 min-h-[80px] flex items-center">
+                      <div className="flex items-center justify-between w-full">
+                        <div className="text-left flex items-center">
+                          <IconComponent className="text-church-secondary mr-4 h-8 w-8" />
+                          <h3 className="text-lg font-semibold text-church-primary group-hover:text-church-secondary text-center md:text-left" style={{ fontSize: '16px', fontWeight: '600' }}>
+                            {organ.name}
+                          </h3>
+                        </div>
+                        <ChevronRight className="text-church-accent opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6" />
                       </div>
-                      <ChevronRight className="text-church-accent opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Button>
-            );
-          })}
+                    </CardContent>
+                  </Card>
+                </Button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </Layout>

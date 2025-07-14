@@ -41,7 +41,7 @@ export const organs: OrganData[] = [
     key: "comissao",
     name: "Comissão",
     description: "Hinos da comissão",
-    icon: "handshake"
+    icon: "heart"
   },
   {
     key: "campanha",
