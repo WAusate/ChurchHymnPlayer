@@ -37,7 +37,7 @@ export default function Home() {
     <Layout showSettingsButton={true}>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-church-primary mb-2">
+          <h2 className="font-bold text-church-primary mb-2 text-[27px]">
             Selecione o Órgão
           </h2>
           <p className="text-church-text opacity-75">
