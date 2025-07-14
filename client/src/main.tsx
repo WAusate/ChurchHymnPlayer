@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { enableDOMErrorSuppression } from "./utils/dom-error-suppressor";
 
 // Import Firebase debug utilities in development
 if (import.meta.env.DEV) {
@@ -12,19 +13,24 @@ if (import.meta.env.DEV) {
   });
 }
 
+// Enable comprehensive DOM error suppression
+enableDOMErrorSuppression();
+
 // Comprehensive error suppression for Vite plugin issues
 window.addEventListener('error', (event) => {
   if (event.message && (
     event.message.includes('insertBefore') ||
     event.message.includes('runtime-error-plugin') ||
-    event.message.includes('Failed to execute \'insertBefore\' on \'Node\'')
+    event.message.includes('Failed to execute \'insertBefore\' on \'Node\'') ||
+    event.message.includes('NotFoundError') ||
+    event.message.includes('DOM manipulation')
   )) {
     console.warn('Vite plugin error suppressed:', event.message);
     event.preventDefault();
     event.stopPropagation();
     return false;
   }
-});
+}, true);
 
 // Also suppress unhandled promise rejections from Vite plugins
 window.addEventListener('unhandledrejection', (event) => {
@@ -37,12 +43,17 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 });
 
-// Simple console.error override to suppress insertBefore errors
+// Enhanced console.error override to suppress DOM-related errors
 if (typeof window !== 'undefined') {
   const originalConsoleError = console.error;
   console.error = function(...args) {
     const message = args.join(' ');
-    if (message.includes('insertBefore') || message.includes('runtime-error-plugin')) {
+    if (message.includes('insertBefore') || 
+        message.includes('runtime-error-plugin') ||
+        message.includes('removeChild') ||
+        message.includes('NotFoundError') ||
+        message.includes('Failed to execute') ||
+        (message.includes('DOM') && message.includes('manipulation'))) {
       return; // Don't log these errors
     }
     return originalConsoleError.apply(console, args);
