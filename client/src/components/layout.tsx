@@ -54,10 +54,10 @@ export default function Layout({
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/admin")}
-                className="text-white hover:text-white hover:bg-white/10 p-3 rounded-lg"
-                style={{ minHeight: '44px', minWidth: '44px' }}
+                className="text-white hover:text-white hover:bg-white/10 p-4 rounded-xl border-2 border-transparent hover:border-white/20"
+                style={{ minHeight: '52px', minWidth: '52px' }}
               >
-                <Settings className="h-5 w-5" />
+                <Settings className="h-7 w-7" />
               </Button>
             </div>
           </div>
