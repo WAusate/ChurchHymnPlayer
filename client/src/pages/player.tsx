@@ -4,7 +4,7 @@ import AudioPlayer from "@/components/audio-player";
 import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import { organs } from "@/lib/organs";
 import { useHymnByIndex } from "@/hooks/use-hymns";
-import { Loader2 } from "lucide-react";
+import { SimpleSpinner } from "@/components/simple-spinner";
 
 interface PlayerProps {
   organKey: string;
@@ -48,7 +48,7 @@ export default function Player({ organKey, hymnIndex }: PlayerProps) {
         onBackClick={handleBack}
       >
         <div className="max-w-2xl mx-auto text-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-church-primary" />
+          <SimpleSpinner className="h-8 w-8 mx-auto mb-4 text-church-primary" />
           <p className="text-church-text">Carregando hino...</p>
         </div>
       </Layout>

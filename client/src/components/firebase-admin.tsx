@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { showSimpleToast } from '@/components/simple-toast';
 import { addHymn } from '@/lib/firebaseService';
 import { organs } from '@/lib/organs';
-import { Upload, Loader2, AlertCircle } from 'lucide-react';
+import { Upload, AlertCircle } from 'lucide-react';
+import { SimpleSpinner } from '@/components/simple-spinner';
 // Using native select to avoid DOM manipulation issues
 import { Progress } from '@/components/ui/progress';
 // Simplified imports - removed DOM utilities that cause conflicts
@@ -186,7 +187,7 @@ export default function FirebaseAdmin() {
             {isUploading && (
               <div className="mt-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-church-primary" />
+                  <SimpleSpinner className="h-4 w-4 text-church-primary" />
                   <span className="text-sm text-gray-600">{uploadStatus}</span>
                 </div>
                 <Progress value={uploadProgress} className="w-full" />
@@ -204,7 +205,7 @@ export default function FirebaseAdmin() {
           >
             {isUploading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <SimpleSpinner className="w-4 h-4 mr-2" />
                 Enviando...
               </>
             ) : (
