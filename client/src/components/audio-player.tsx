@@ -50,21 +50,22 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
       const cleanUrl = newSrc.trim().replace(/\n/g, '').replace(/\r/g, '').replace(/\s+/g, ' ').trim();
       console.log('Setting clean audio URL:', cleanUrl);
       
-      // For Firebase Storage URLs, try both CORS modes
+      // For Firebase Storage URLs, remove CORS to avoid errors
       try {
-        // First try with CORS for Firebase Storage
+        // Firebase Storage URLs cause CORS issues, don't set crossOrigin
         if (cleanUrl.includes('firebasestorage.googleapis.com')) {
-          audio.crossOrigin = 'anonymous';
+          console.log('Firebase Storage URL detected, using without CORS');
+          audio.removeAttribute('crossOrigin');
         } else {
           audio.removeAttribute('crossOrigin');
         }
         audio.src = cleanUrl;
         audio.load(); // Force reload
-      } catch (corsError) {
-        console.log('CORS attempt failed, trying without CORS:', corsError);
-        audio.removeAttribute('crossOrigin');
-        audio.src = cleanUrl;
-        audio.load();
+      } catch (error) {
+        console.error('Error setting audio source:', error);
+        if (onError) {
+          onError("Erro ao carregar áudio. Tente novamente.");
+        }
       }
     }
 

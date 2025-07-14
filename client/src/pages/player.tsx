@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import Layout from "@/components/layout";
 import AudioPlayer from "@/components/audio-player";
 import FirebaseConnectionStatus from "@/components/firebase-connection-status";
+import CorsErrorMessage from "@/components/cors-error-message";
 import { organs } from "@/lib/organs";
 import { useHymnByIndex } from "@/hooks/use-hymns";
 import { SimpleSpinner } from "@/components/simple-spinner";
@@ -13,6 +15,8 @@ interface PlayerProps {
 
 export default function Player({ organKey, hymnIndex }: PlayerProps) {
   const [, navigate] = useLocation();
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const [showCorsError, setShowCorsError] = useState(false);
   const organ = organs.find((o) => o.key === organKey);
   const hymnIndexNum = parseInt(hymnIndex, 10);
   const { hymn, isLoading, error, isOnline } = useHymnByIndex(organKey, hymnIndexNum);
@@ -23,6 +27,21 @@ export default function Player({ organKey, hymnIndex }: PlayerProps) {
 
   const handleAudioError = (errorMessage: string) => {
     console.error("Audio player error:", errorMessage);
+    setAudioError(errorMessage);
+    
+    // Check if it's a CORS-related error
+    if (errorMessage.includes("CORS") || 
+        errorMessage.includes("Media Element") || 
+        errorMessage.includes("deploy") ||
+        errorMessage.includes("formato")) {
+      setShowCorsError(true);
+    }
+  };
+
+  const handleRetryAudio = () => {
+    setAudioError(null);
+    setShowCorsError(false);
+    // The audio player will automatically retry when the error state is cleared
   };
 
   if (!organ) {
@@ -98,7 +117,18 @@ export default function Player({ organKey, hymnIndex }: PlayerProps) {
         <div className="mb-4 flex justify-end">
           <FirebaseConnectionStatus />
         </div>
-        <AudioPlayer hymn={hymn} onError={handleAudioError} />
+        
+        {showCorsError ? (
+          <CorsErrorMessage onRetry={handleRetryAudio} />
+        ) : (
+          <AudioPlayer hymn={hymn} onError={handleAudioError} />
+        )}
+        
+        {audioError && !showCorsError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center mt-4">
+            <p className="text-red-800 text-sm">{audioError}</p>
+          </div>
+        )}
         {!isOnline && (
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800">
