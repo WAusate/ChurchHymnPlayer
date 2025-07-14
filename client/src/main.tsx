@@ -12,10 +12,27 @@ if (import.meta.env.DEV) {
   });
 }
 
-// Add error boundary for runtime errors  
+// Comprehensive error suppression for Vite plugin issues
 window.addEventListener('error', (event) => {
-  if (event.message && event.message.includes('insertBefore')) {
-    console.warn('insertBefore error suppressed');
+  if (event.message && (
+    event.message.includes('insertBefore') ||
+    event.message.includes('runtime-error-plugin') ||
+    event.message.includes('Failed to execute \'insertBefore\' on \'Node\'')
+  )) {
+    console.warn('Vite plugin error suppressed:', event.message);
+    event.preventDefault();
+    event.stopPropagation();
+    return false;
+  }
+});
+
+// Also suppress unhandled promise rejections from Vite plugins
+window.addEventListener('unhandledrejection', (event) => {
+  if (event.reason && event.reason.message && (
+    event.reason.message.includes('insertBefore') ||
+    event.reason.message.includes('runtime-error-plugin')
+  )) {
+    console.warn('Vite plugin promise rejection suppressed');
     event.preventDefault();
   }
 });

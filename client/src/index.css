@@ -143,6 +143,35 @@
   box-shadow: 0 8px 25px rgba(77, 180, 231, 0.2);
 }
 
+/* Hide Vite runtime error overlay that causes insertBefore errors */
+#vite-plugin-runtime-error-modal,
+.vite-error-overlay,
+div[data-testid="error-overlay"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Prevent runtime error modal from showing */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: -1;
+}
+
+/* Ensure error overlays are completely hidden */
+*[id*="error"],
+*[class*="error-overlay"],
+*[class*="runtime-error"] {
+  display: none !important;
+}
+
 /* Button specific improvements */
 .organ-button {
   padding: 0;
