@@ -47,8 +47,7 @@ export default function Admin() {
   return (
     <Layout title="Administração" showBackButton={true}>
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-church-primary text-center">Configurações</h2>
+        <div className="flex justify-end items-center">
           <FirebaseConnectionStatus />
         </div>
 
