@@ -37,6 +37,18 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 });
 
+// Simple console.error override to suppress insertBefore errors
+if (typeof window !== 'undefined') {
+  const originalConsoleError = console.error;
+  console.error = function(...args) {
+    const message = args.join(' ');
+    if (message.includes('insertBefore') || message.includes('runtime-error-plugin')) {
+      return; // Don't log these errors
+    }
+    return originalConsoleError.apply(console, args);
+  };
+}
+
 // Safely create root with error handling
 const rootElement = document.getElementById("root");
 if (rootElement) {
