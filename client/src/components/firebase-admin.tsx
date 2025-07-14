@@ -8,10 +8,9 @@ import { useSafeToast } from '@/components/safe-toast-provider';
 import { addHymn } from '@/lib/firebaseService';
 import { organs } from '@/lib/organs';
 import { Upload, Loader2, AlertCircle } from 'lucide-react';
-// Remove DOM utils import as we're eliminating direct DOM manipulation
-import { SafeSelect, SafeSelectItem } from '@/components/ui/safe-select';
+// Using native select to avoid DOM manipulation issues
 import { Progress } from '@/components/ui/progress';
-import { ProtectedForm } from '@/components/protected-form';
+// Removed ProtectedForm to eliminate DOM issues
 import { safeDispatchEvent, safeGetElementById } from '@/lib/dom-safe-utils';
 
 export default function FirebaseAdmin() {
@@ -75,18 +74,20 @@ export default function FirebaseAdmin() {
   }, [showToast, MAX_FILE_SIZE]);
 
   const handleSubmit = React.useCallback(async (event: React.FormEvent) => {
-    try {
-      event.preventDefault();
-    } catch (error) {
-      console.warn('Form submit prevent default error:', error);
-    }
+    event.preventDefault();
     
+    // Validation - check required fields first
     if (!titulo || !orgao || !audioFile) {
       showToast({
         title: "Erro",
         description: "Por favor, preencha todos os campos.",
         variant: "destructive",
       });
+      return;
+    }
+    
+    // Prevent upload if already uploading
+    if (isUploading) {
       return;
     }
 
@@ -128,10 +129,10 @@ export default function FirebaseAdmin() {
         console.warn('File input reset error:', error);
       }
       
-      // Trigger refresh event safely with timeout and DOM validation
+      // Trigger refresh event safely with timeout 
       setTimeout(() => {
         safeDispatchEvent('hymn-added', { docId, orgao });
-      }, 200);
+      }, 100);
       
     } catch (error: any) {
       console.error('Error adding hymn:', error);
@@ -158,7 +159,7 @@ export default function FirebaseAdmin() {
         <CardTitle className="text-church-primary">Adicionar Hino</CardTitle>
       </CardHeader>
       <CardContent>
-        <ProtectedForm onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="titulo">Título do Hino</Label>
             <Input
@@ -179,13 +180,25 @@ export default function FirebaseAdmin() {
           
           <div>
             <Label htmlFor="orgao">Órgão</Label>
-            <SafeSelect value={orgao} onValueChange={handleOrgaoChange} placeholder="Selecione o órgão">
+            <select
+              value={orgao}
+              onChange={(e) => {
+                try {
+                  setOrgao(e.target.value);
+                } catch (error) {
+                  console.warn('Organ selection error:', error);
+                }
+              }}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              required
+            >
+              <option value="">Selecione o órgão</option>
               {organs.map((organ) => (
-                <SafeSelectItem key={organ.key} value={organ.name}>
+                <option key={organ.key} value={organ.name}>
                   {organ.name}
-                </SafeSelectItem>
+                </option>
               ))}
-            </SafeSelect>
+            </select>
           </div>
           
           <div>
@@ -239,7 +252,7 @@ export default function FirebaseAdmin() {
               </>
             )}
           </Button>
-        </ProtectedForm>
+        </form>
       </CardContent>
     </Card>
   );
