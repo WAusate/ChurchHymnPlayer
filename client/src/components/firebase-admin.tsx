@@ -10,8 +10,7 @@ import { organs } from '@/lib/organs';
 import { Upload, Loader2, AlertCircle } from 'lucide-react';
 // Using native select to avoid DOM manipulation issues
 import { Progress } from '@/components/ui/progress';
-// Removed ProtectedForm to eliminate DOM issues
-import { safeDispatchEvent, safeGetElementById } from '@/lib/dom-safe-utils';
+// Simplified imports - removed DOM utilities that cause conflicts
 
 export default function FirebaseAdmin() {
   const [titulo, setTitulo] = useState('');
@@ -111,9 +110,9 @@ export default function FirebaseAdmin() {
       setUploadProgress(0);
       setUploadStatus('');
       
-      // Reset file input safely with DOM validation
+      // Reset file input safely
       try {
-        const fileInput = safeGetElementById('audioFile') as HTMLInputElement;
+        const fileInput = document.getElementById('audioFile') as HTMLInputElement;
         if (fileInput) {
           fileInput.value = '';
         }
@@ -124,7 +123,7 @@ export default function FirebaseAdmin() {
       // Trigger refresh event safely with timeout 
       setTimeout(() => {
         try {
-          safeDispatchEvent('hymn-added', { docId, orgao });
+          window.dispatchEvent(new CustomEvent('hymn-added', { detail: { docId, orgao } }));
         } catch (error) {
           console.warn('Event dispatch error:', error);
         }
