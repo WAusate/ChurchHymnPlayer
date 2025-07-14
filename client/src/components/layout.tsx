@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Settings } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -47,6 +47,18 @@ export default function Layout({
               <h1 className="text-xl md:text-2xl font-bold text-white" style={{ fontSize: '20px' }}>
                 {title}
               </h1>
+            </div>
+            {/* Settings button in header */}
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/admin")}
+                className="text-white hover:text-white hover:bg-white/10 p-3 rounded-lg"
+                style={{ minHeight: '44px', minWidth: '44px' }}
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
             </div>
           </div>
           {breadcrumbs && breadcrumbs.length > 0 && (

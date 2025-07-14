@@ -12,8 +12,7 @@ import {
   Guitar, 
   Heart, 
   Flag,
-  ChevronRight,
-  Settings
+  ChevronRight
 } from "lucide-react";
 
 const iconMap = {
@@ -38,25 +37,12 @@ export default function Home() {
     <Layout>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1">
-              <h2 className="text-3xl font-bold text-church-primary mb-2">
-                Selecione o Órgão
-              </h2>
-              <p className="text-church-text opacity-75">
-                Escolha o órgão da igreja para acessar os hinos
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/admin")}
-              className="border-church-secondary text-church-secondary hover:bg-church-secondary hover:text-white p-3 rounded-lg"
-              style={{ minHeight: '44px', minWidth: '44px' }}
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
-          </div>
+          <h2 className="text-3xl font-bold text-church-primary mb-2">
+            Selecione o Órgão
+          </h2>
+          <p className="text-church-text opacity-75">
+            Escolha o órgão da igreja para acessar os hinos
+          </p>
         </div>
 
         <div className="flex flex-col items-center">
