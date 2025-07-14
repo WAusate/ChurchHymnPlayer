@@ -6,7 +6,6 @@ import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import { organs } from "@/lib/organs";
 import { useHymns } from "@/hooks/use-hymns";
 import { Play, ChevronRight } from "lucide-react";
-import { SimpleSpinner } from "@/components/simple-spinner";
 
 interface HymnListProps {
   organKey: string;
@@ -48,7 +47,7 @@ export default function HymnList({ organKey }: HymnListProps) {
         onBackClick={handleBack}
       >
         <div className="text-center py-8">
-          <SimpleSpinner className="h-8 w-8 mx-auto mb-4 text-church-primary" />
+          <div className="h-8 w-8 mx-auto mb-4 border-2 border-church-primary border-r-transparent rounded-full animate-spin"></div>
           <p className="text-church-text">Carregando hinos...</p>
         </div>
       </Layout>

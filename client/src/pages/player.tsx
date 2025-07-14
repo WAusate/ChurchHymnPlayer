@@ -6,7 +6,7 @@ import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import CorsErrorMessage from "@/components/cors-error-message";
 import { organs } from "@/lib/organs";
 import { useHymnByIndex } from "@/hooks/use-hymns";
-import { SimpleSpinner } from "@/components/simple-spinner";
+
 
 interface PlayerProps {
   organKey: string;
@@ -67,7 +67,7 @@ export default function Player({ organKey, hymnIndex }: PlayerProps) {
         onBackClick={handleBack}
       >
         <div className="max-w-2xl mx-auto text-center py-8">
-          <SimpleSpinner className="h-8 w-8 mx-auto mb-4 text-church-primary" />
+          <div className="h-8 w-8 mx-auto mb-4 border-2 border-church-primary border-r-transparent rounded-full animate-spin"></div>
           <p className="text-church-text">Carregando hino...</p>
         </div>
       </Layout>
