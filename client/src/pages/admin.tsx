@@ -45,7 +45,7 @@ export default function Admin() {
   // Using simple toast system to avoid DOM conflicts
 
   return (
-    <Layout title="Administração" showBackButton={true}>
+    <Layout title="Configurações" showBackButton={true}>
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex justify-end items-center">
           <FirebaseConnectionStatus />
