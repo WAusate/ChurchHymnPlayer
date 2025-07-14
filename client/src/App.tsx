@@ -1,7 +1,7 @@
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { SafeToastProvider } from "@/components/safe-toast-provider";
+import { SimpleToastContainer } from "@/components/simple-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import HymnList from "@/pages/hymn-list";
@@ -28,13 +28,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <SafeToastProvider>
-        <TooltipProvider>
-          <div className="min-h-screen bg-gray-50">
-            <Router />
-          </div>
-        </TooltipProvider>
-      </SafeToastProvider>
+      <TooltipProvider>
+        <div className="min-h-screen bg-gray-50">
+          <Router />
+          <SimpleToastContainer />
+        </div>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

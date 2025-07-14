@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useSafeToast } from '@/components/safe-toast-provider';
+import { showSimpleToast } from '@/components/simple-toast';
 import { addHymn } from '@/lib/firebaseService';
 import { organs } from '@/lib/organs';
 import { Upload, Loader2, AlertCircle } from 'lucide-react';
@@ -19,7 +19,7 @@ export default function FirebaseAdmin() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState('');
-  const { showToast } = useSafeToast();
+  // Using simple toast to avoid DOM conflicts
 
   // Remove unused callback since we're using native select
 
@@ -32,21 +32,13 @@ export default function FirebaseAdmin() {
       if (file) {
         // Validate file type
         if (!file.type.startsWith('audio/')) {
-          showToast({
-            title: "Erro",
-            description: "Por favor, selecione um arquivo de áudio válido.",
-            variant: "destructive",
-          });
+          showSimpleToast("Por favor, selecione um arquivo de áudio válido.", "error");
           return;
         }
 
         // Validate file size (10MB limit)
         if (file.size > MAX_FILE_SIZE) {
-          showToast({
-            title: "Arquivo muito grande",
-            description: `O arquivo deve ter no máximo ${Math.round(MAX_FILE_SIZE / (1024 * 1024))}MB. Arquivo atual: ${Math.round(file.size / (1024 * 1024))}MB`,
-            variant: "destructive",
-          });
+          showSimpleToast(`Arquivo muito grande. Máximo ${Math.round(MAX_FILE_SIZE / (1024 * 1024))}MB, atual: ${Math.round(file.size / (1024 * 1024))}MB`, "error");
           return;
         }
 
@@ -56,24 +48,16 @@ export default function FirebaseAdmin() {
       }
     } catch (error) {
       console.warn('File change error:', error);
-      showToast({
-        title: "Erro",
-        description: "Erro ao processar o arquivo selecionado.",
-        variant: "destructive",
-      });
+      showSimpleToast("Erro ao processar o arquivo selecionado.", "error");
     }
-  }, [showToast, MAX_FILE_SIZE]);
+  }, [MAX_FILE_SIZE]);
 
   const handleSubmit = React.useCallback(async (event: React.FormEvent) => {
     event.preventDefault();
     
     // Validation - check required fields first
     if (!titulo || !orgao || !audioFile) {
-      showToast({
-        title: "Erro",
-        description: "Por favor, preencha todos os campos.",
-        variant: "destructive",
-      });
+      showSimpleToast("Por favor, preencha todos os campos.", "error");
       return;
     }
     
@@ -98,10 +82,7 @@ export default function FirebaseAdmin() {
       setUploadStatus('Upload concluído!');
       
       // Success toast 
-      showToast({
-        title: "Sucesso",
-        description: "Hino adicionado com sucesso!",
-      });
+      showSimpleToast("Hino adicionado com sucesso!", "success");
       
       // Reset form state cleanly
       setTitulo('');
@@ -134,19 +115,17 @@ export default function FirebaseAdmin() {
       setUploadProgress(0);
       setUploadStatus('');
       
-      showToast({
-        title: "Erro",
-        description:
-          typeof error?.message === 'string'
-            ? error.message
-            : 'Erro ao adicionar hino. Verifique sua conexão e tente novamente.',
-        variant: "destructive",
-      });
+      showSimpleToast(
+        typeof error?.message === 'string'
+          ? error.message
+          : 'Erro ao adicionar hino. Verifique sua conexão e tente novamente.',
+        "error"
+      );
     } finally {
       // Reset uploading state 
       setIsUploading(false);
     }
-  }, [titulo, orgao, audioFile, showToast]);
+  }, [titulo, orgao, audioFile]);
 
   return (
     <Card className="w-full max-w-md">

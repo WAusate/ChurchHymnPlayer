@@ -4,7 +4,7 @@ import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import { FirebaseConfigWarning } from "@/lib/firebase-check";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useSafeToast } from "@/components/safe-toast-provider";
+import { showSimpleToast } from "@/components/simple-toast";
 import { useState } from "react";
 
 // Firebase service with fallback
@@ -42,7 +42,7 @@ if (hasFirebaseConfig) {
 }
 
 export default function Admin() {
-  const { showToast } = useSafeToast();
+  // Using simple toast system to avoid DOM conflicts
 
   return (
     <Layout title="Administração" showBackButton={true}>
