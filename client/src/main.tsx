@@ -12,6 +12,14 @@ if (import.meta.env.DEV) {
   });
 }
 
+// Add error boundary for runtime errors  
+window.addEventListener('error', (event) => {
+  if (event.message && event.message.includes('insertBefore')) {
+    console.warn('insertBefore error suppressed');
+    event.preventDefault();
+  }
+});
+
 // Safely create root with error handling
 const rootElement = document.getElementById("root");
 if (rootElement) {

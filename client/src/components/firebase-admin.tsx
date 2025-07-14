@@ -22,15 +22,7 @@ export default function FirebaseAdmin() {
   const [uploadStatus, setUploadStatus] = useState('');
   const { showToast } = useSafeToast();
 
-  // Protected callback for organ selection to avoid DOM errors
-  const handleOrgaoChange = React.useCallback((value: string) => {
-    try {
-      setOrgao(value);
-    } catch (error) {
-      // Silently handle state update errors
-      console.warn('Organ selection error:', error);
-    }
-  }, []);
+  // Remove unused callback since we're using native select
 
   // Maximum file size: 10MB
   const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -131,7 +123,11 @@ export default function FirebaseAdmin() {
       
       // Trigger refresh event safely with timeout 
       setTimeout(() => {
-        safeDispatchEvent('hymn-added', { docId, orgao });
+        try {
+          safeDispatchEvent('hymn-added', { docId, orgao });
+        } catch (error) {
+          console.warn('Event dispatch error:', error);
+        }
       }, 100);
       
     } catch (error: any) {
@@ -166,13 +162,7 @@ export default function FirebaseAdmin() {
               id="titulo"
               type="text"
               value={titulo}
-              onChange={(e) => {
-                try {
-                  setTitulo(e.target.value);
-                } catch (error) {
-                  console.warn('Title change error:', error);
-                }
-              }}
+              onChange={(e) => setTitulo(e.target.value)}
               placeholder="Digite o título do hino"
               required
             />
@@ -182,13 +172,7 @@ export default function FirebaseAdmin() {
             <Label htmlFor="orgao">Órgão</Label>
             <select
               value={orgao}
-              onChange={(e) => {
-                try {
-                  setOrgao(e.target.value);
-                } catch (error) {
-                  console.warn('Organ selection error:', error);
-                }
-              }}
+              onChange={(e) => setOrgao(e.target.value)}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               required
             >
