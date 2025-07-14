@@ -46,7 +46,7 @@ export default function Layout({
                   <ArrowLeft className="h-6 w-6" />
                 </Button>
               )}
-              <h1 className="md:text-2xl font-bold text-white text-[30px]" style={{ fontSize: '20px' }}>
+              <h1 className="font-bold text-white" style={{ fontSize: '30px' }}>
                 {title}
               </h1>
             </div>
