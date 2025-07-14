@@ -46,7 +46,7 @@ export default function Layout({
                   <ArrowLeft className="h-6 w-6" />
                 </Button>
               )}
-              <h1 className="text-xl md:text-2xl font-bold text-white" style={{ fontSize: '20px' }}>
+              <h1 className="md:text-2xl font-bold text-white text-[30px]" style={{ fontSize: '20px' }}>
                 {title}
               </h1>
             </div>
@@ -78,7 +78,6 @@ export default function Layout({
           )}
         </div>
       </header>
-      
       <main className="container mx-auto px-4 py-8">
         {children}
       </main>
