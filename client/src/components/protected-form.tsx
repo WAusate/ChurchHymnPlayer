@@ -26,15 +26,22 @@ const ProtectedForm = ({ onSubmit, children, className }: ProtectedFormProps) =>
     setIsSubmitting(true)
 
     try {
-      // Call the original onSubmit handler immediately
-      onSubmit(event)
-    } catch (error) {
-      console.error('Protected form submit error:', error)
-    } finally {
-      // Reset submitting state after a reasonable delay
+      // Delay the onSubmit call to avoid immediate DOM conflicts
       setTimeout(() => {
-        setIsSubmitting(false)
-      }, 1000)
+        try {
+          onSubmit(event)
+        } catch (error) {
+          console.error('Protected form submit error:', error)
+        } finally {
+          // Reset submitting state after processing
+          setTimeout(() => {
+            setIsSubmitting(false)
+          }, 500)
+        }
+      }, 10)
+    } catch (error) {
+      console.error('Protected form submit wrapper error:', error)
+      setIsSubmitting(false)
     }
   }, [onSubmit, isSubmitting])
 

@@ -57,8 +57,16 @@ const SafeSelect = ({ value, onValueChange, placeholder, children, className }: 
 
     const handleClickOutside = (event: MouseEvent) => {
       try {
-        if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
-          if (isMounted) {
+        // More robust DOM node checking
+        const target = event.target as Node
+        if (target && selectRef.current) {
+          // Check if elements are still in DOM before contains check
+          if (document.contains(selectRef.current) && document.contains(target)) {
+            if (!selectRef.current.contains(target) && isMounted) {
+              setIsOpen(false)
+            }
+          } else if (isMounted) {
+            // If nodes are not in DOM, safely close
             setIsOpen(false)
           }
         }

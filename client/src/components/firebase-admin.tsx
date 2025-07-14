@@ -12,6 +12,7 @@ import { Upload, Loader2, AlertCircle } from 'lucide-react';
 import { SafeSelect, SafeSelectItem } from '@/components/ui/safe-select';
 import { Progress } from '@/components/ui/progress';
 import { ProtectedForm } from '@/components/protected-form';
+import { safeDispatchEvent, safeGetElementById } from '@/lib/dom-safe-utils';
 
 export default function FirebaseAdmin() {
   const [titulo, setTitulo] = useState('');
@@ -117,9 +118,9 @@ export default function FirebaseAdmin() {
       setUploadProgress(0);
       setUploadStatus('');
       
-      // Reset file input safely
+      // Reset file input safely with DOM validation
       try {
-        const fileInput = document.getElementById('audioFile') as HTMLInputElement;
+        const fileInput = safeGetElementById('audioFile') as HTMLInputElement;
         if (fileInput) {
           fileInput.value = '';
         }
@@ -127,14 +128,10 @@ export default function FirebaseAdmin() {
         console.warn('File input reset error:', error);
       }
       
-      // Trigger refresh event safely with timeout
+      // Trigger refresh event safely with timeout and DOM validation
       setTimeout(() => {
-        try {
-          window.dispatchEvent(new CustomEvent('hymn-added', { detail: { docId, orgao } }));
-        } catch (error) {
-          console.warn('Event dispatch error:', error);
-        }
-      }, 100);
+        safeDispatchEvent('hymn-added', { docId, orgao });
+      }, 200);
       
     } catch (error: any) {
       console.error('Error adding hymn:', error);

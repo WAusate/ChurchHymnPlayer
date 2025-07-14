@@ -43,15 +43,25 @@ export function SafeToastProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(toastReducer, { toasts: [] });
 
   const showToast = useCallback((toast: Omit<ToastMessage, 'id'>) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const duration = toast.duration || 3000;
-    
-    dispatch({ type: 'ADD_TOAST', toast: { ...toast, id } });
-    
-    // Auto-remove toast after duration
-    setTimeout(() => {
-      dispatch({ type: 'REMOVE_TOAST', id });
-    }, duration);
+    try {
+      const id = Math.random().toString(36).substr(2, 9);
+      const duration = toast.duration || 3000;
+      
+      dispatch({ type: 'ADD_TOAST', toast: { ...toast, id } });
+      
+      // Auto-remove toast after duration with DOM validation
+      setTimeout(() => {
+        try {
+          if (document.body && document.documentElement) {
+            dispatch({ type: 'REMOVE_TOAST', id });
+          }
+        } catch (error) {
+          console.warn('Toast removal error:', error);
+        }
+      }, duration);
+    } catch (error) {
+      console.warn('Toast creation error:', error);
+    }
   }, []);
 
   const removeToast = useCallback((id: string) => {
