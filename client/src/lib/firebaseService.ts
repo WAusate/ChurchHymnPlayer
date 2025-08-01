@@ -105,9 +105,24 @@ export async function getHymnsByOrgan(organName: string): Promise<LocalHymn[]> {
     const firestoreHymns = await getDocumentsFromFirestore(HYMNS_COLLECTION);
     console.log('Firestore hymns retrieved:', firestoreHymns.length);
     
-    // Filter by organ and sort by numero on client side
+    // Filter by organ with flexible matching (case-insensitive and partial match)
     const organHymns = firestoreHymns
-      .filter(hymn => hymn.orgao === organName)
+      .filter(hymn => {
+        const hymnOrgan = hymn.orgao.toLowerCase();
+        const searchOrgan = organName.toLowerCase();
+        
+        // Try exact match first
+        if (hymnOrgan === searchOrgan) return true;
+        
+        // Try partial matches for common cases
+        if (hymnOrgan.includes(searchOrgan) || searchOrgan.includes(hymnOrgan)) return true;
+        
+        // Handle specific mappings
+        if (searchOrgan.includes('proat') && hymnOrgan.includes('proati')) return true;
+        if (searchOrgan.includes('proati') && hymnOrgan.includes('proat')) return true;
+        
+        return false;
+      })
       .sort((a, b) => a.numero - b.numero);
     
     console.log(`Hymns for organ "${organName}":`, organHymns.length);

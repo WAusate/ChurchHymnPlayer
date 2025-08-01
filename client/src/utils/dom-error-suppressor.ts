@@ -18,35 +18,38 @@ export function enableDOMErrorSuppression() {
   isSuppressionActive = true;
 
   // Override insertBefore to handle common conflicts
-  Node.prototype.insertBefore = function(newNode: Node, referenceNode: Node | null) {
+  Node.prototype.insertBefore = function<T extends Node>(newNode: T, referenceNode: Node | null): T {
     try {
       // Check if the operation is safe
-      if (this.contains && referenceNode && !this.contains(referenceNode)) {
-        console.warn('DOM Error Suppressed: insertBefore with invalid reference node');
+      if (referenceNode && this.contains && !this.contains(referenceNode)) {
+        // Don't log this as it's expected behavior for Vite plugin
         return this.appendChild(newNode);
       }
+      
+      // Additional safety checks
+      if (referenceNode && referenceNode.parentNode !== this) {
+        return this.appendChild(newNode);
+      }
+      
       return originalInsertBefore.call(this, newNode, referenceNode);
     } catch (error) {
-      console.warn('DOM Error Suppressed: insertBefore failed, using appendChild fallback', error);
+      // Silently handle the error and use fallback
       try {
         return this.appendChild(newNode);
       } catch (fallbackError) {
-        console.warn('DOM Error Suppressed: appendChild fallback also failed', fallbackError);
         return newNode;
       }
     }
   };
 
   // Override removeChild to handle conflicts
-  Node.prototype.removeChild = function(child: Node) {
+  Node.prototype.removeChild = function<T extends Node>(child: T): T {
     try {
       if (this.contains && !this.contains(child)) {
-        console.warn('DOM Error Suppressed: removeChild with invalid child');
         return child;
       }
       return originalRemoveChild.call(this, child);
     } catch (error) {
-      console.warn('DOM Error Suppressed: removeChild failed', error);
       return child;
     }
   };

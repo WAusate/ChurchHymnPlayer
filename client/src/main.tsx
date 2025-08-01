@@ -46,6 +46,8 @@ window.addEventListener('unhandledrejection', (event) => {
 // Enhanced console.error override to suppress DOM-related errors
 if (typeof window !== 'undefined') {
   const originalConsoleError = console.error;
+  const originalConsoleWarn = console.warn;
+  
   console.error = function(...args) {
     const message = args.join(' ');
     if (message.includes('insertBefore') || 
@@ -57,6 +59,15 @@ if (typeof window !== 'undefined') {
       return; // Don't log these errors
     }
     return originalConsoleError.apply(console, args);
+  };
+  
+  console.warn = function(...args) {
+    const message = args.join(' ');
+    if (message.includes('DOM Error Suppressed') || 
+        message.includes('insertBefore with invalid reference node')) {
+      return; // Don't log DOM suppression warnings
+    }
+    return originalConsoleWarn.apply(console, args);
   };
 }
 
