@@ -1,18 +1,20 @@
 # Sistema de Hinos - Igreja
 
 ## Overview
+This project is a church hymn management system that allows users to browse different church departments (organs), view hymn collections, and play audio files. It is designed to serve multiple church departments, providing them with their own hymn collections. The system aims to offer a modern and accessible platform for managing and sharing hymns.
 
-This is a church hymn management system built with a modern React frontend and Express.js backend. The application allows users to browse different church organs (departments), view hymn collections, and play audio files. The system is designed to serve multiple church departments like Coral, Children's Ministry, Youth Groups, and more, each with their own hymn collections.
+## User Preferences
+Preferred communication style: Simple, everyday language.
 
 ## System Architecture
-
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript
-- **Routing**: Wouter for lightweight client-side routing
+- **Routing**: Wouter
 - **Styling**: Tailwind CSS with shadcn/ui component library
-- **State Management**: TanStack Query for server state management
-- **Build Tool**: Vite for fast development and optimized builds
-- **UI Components**: Comprehensive shadcn/ui component system with Radix UI primitives
+- **State Management**: TanStack Query for server state
+- **Build Tool**: Vite
+- **UI Components**: shadcn/ui system with Radix UI primitives
+- **Design Approach**: Mobile-first with church-themed styling.
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
@@ -20,211 +22,42 @@ This is a church hymn management system built with a modern React frontend and E
 - **Database**: PostgreSQL with Drizzle ORM
 - **Database Provider**: Neon Database (serverless PostgreSQL)
 - **Session Management**: Express sessions with PostgreSQL store
-- **Development**: TSX for TypeScript execution
 
 ### Project Structure
-- `client/` - React frontend application
+- `client/` - React frontend
 - `server/` - Express.js backend API
 - `shared/` - Shared TypeScript types and database schema
-- `migrations/` - Database migration files
 
-## Key Components
-
-### Database Schema
-- **Users**: Basic user authentication with username/password
-- **Organs**: Church departments/groups (Coral, Youth, Children, etc.)
-- **Hymns**: Individual hymn records with titles, URLs, and organization
-
-### Frontend Features
-- **Home Page**: Grid of church organ cards for navigation
-- **Hymn Lists**: Display hymns for each organ with play buttons
-- **Audio Player**: Full-featured audio player with controls
-- **Responsive Design**: Mobile-first approach with church-themed styling
-- **Error Handling**: Toast notifications for user feedback
-
-### Backend Features
-- **RESTful API**: Structured API endpoints with `/api` prefix
-- **Storage Interface**: Abstracted storage layer supporting both memory and database implementations
-- **Request Logging**: Comprehensive request/response logging
-- **Error Handling**: Centralized error handling middleware
-
-## Data Flow
-
-1. **Organ Selection**: Users select a church organ from the home page
-2. **Hymn Loading**: Frontend loads hymn data from JSON files for the selected organ
-3. **Audio Playback**: Users can play hymns directly in the browser
-4. **Navigation**: Breadcrumb navigation and back buttons for intuitive UX
-
-### Current Data Storage
-- Hymn collections are stored as static JSON files in `client/src/data/hymns/`
-- Each organ has its own JSON file with hymn metadata
-- Audio files are referenced but stored separately (not in repository)
+### Key Features
+- **Database Schema**: Includes Users, Organs, and Hymns.
+- **Frontend Features**: Home page with organ navigation, hymn lists with play buttons, a full-featured audio player, responsive design, and toast notifications for error handling.
+- **Backend Features**: RESTful API with `/api` prefix, abstracted storage layer, request logging, and centralized error handling.
+- **Data Flow**: Users select an organ, frontend loads hymn data (initially from JSON files, now integrated with Firebase), and audio playback occurs directly in the browser.
+- **Authentication System**: Utilizes Firebase Auth for email/password authentication, providing protected routes (`/config`, `/admin`) for hymn management, while public read access is maintained for hymns.
 
 ## External Dependencies
-
 ### Frontend Dependencies
 - **UI Framework**: React, React DOM
-- **Component Library**: Radix UI primitives, shadcn/ui components
+- **Component Library**: Radix UI, shadcn/ui
 - **Styling**: Tailwind CSS, class-variance-authority, clsx
 - **State Management**: TanStack React Query
 - **Form Handling**: React Hook Form with Zod validation
-- **Audio/Media**: Native HTML5 audio elements
 - **Icons**: Lucide React icons
+- **Authentication**: Firebase Auth
 
 ### Backend Dependencies
 - **Web Framework**: Express.js
 - **Database**: Drizzle ORM, Neon Database serverless driver
 - **Session Management**: connect-pg-simple
 - **Validation**: Zod schemas
-- **Development**: TSX, TypeScript
+- **Authentication**: Firebase Admin SDK
 
 ### Development Tools
 - **Build**: Vite, esbuild
-- **Development**: Replit-specific plugins and tools
-- **Linting**: TypeScript compiler checking
+- **Linting**: TypeScript compiler
 
-## Deployment Strategy
-
-### Development Environment
-- Vite dev server for frontend with HMR
-- TSX for backend TypeScript execution
-- Integrated development with Replit tooling
-
-### Production Build
-- Frontend: Vite builds to `dist/public`
-- Backend: esbuild bundles server to `dist/index.js`
-- Static asset serving through Express
-- Database migrations through Drizzle Kit
-
-### Environment Configuration
-- Database URL required for PostgreSQL connection
-- Environment-specific configuration through process.env
-- Replit-specific development banner and cartographer integration
-
-## Firebase Integration
-
-### Firestore Structure
-- **Collection**: `hinos`
-- **Document Fields**:
-  - `numero` (number): Auto-generated hymn number
-  - `titulo` (string): Hymn title
-  - `orgao` (string): Organ name (Coral, Crianças, etc.)
-  - `audioPath` (string): Firebase Storage path to audio file
-  - `criadoEm` (timestamp): Creation timestamp
-
-### Firebase Storage Structure
-- **Root folder**: `hinos/`
-- Audio files are automatically named with pattern: `{organ}-{number}-{timestamp}.mp3`
-- Ensure your Firebase Storage rules allow authenticated read/write
-  or configure public uploads while testing. Also confirm the
-  `storageBucket` value in `.env` matches your project bucket name.
-
-### Offline Functionality
-- App downloads all hymn data and audio URLs on first load
-- Data stored in localStorage for offline access
-- Connection status indicator shows online/offline state
-- Automatic fallback to offline data when connection is lost
-
-### Environment Variables Required
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_STORAGE_BUCKET`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
-
-### Troubleshooting
-If you see **"Missing or insufficient permissions"** when uploading a hymn:
-1. Review your Firebase Firestore and Storage security rules. During testing you can allow public write access.
-2. Ensure the value of `VITE_FIREBASE_STORAGE_BUCKET` in your `.env` file exactly matches the bucket name configured in Firebase.
-3. The app signs in anonymously on startup. If the console shows an authentication error, fix your Firebase configuration or adjust rules.
-
-### Audio Playback Issues
-If you encounter **"MEDIA_ELEMENT_ERROR: Format error"** during audio playback:
-1. This is typically a CORS (Cross-Origin Resource Sharing) issue, not a file format problem
-2. Firebase Storage URLs are restricted in local development environments
-3. **Solution**: Deploy to Firebase Hosting to resolve CORS restrictions automatically
-4. **Workaround**: For local testing, use debug tools to verify file integrity and URLs
-5. Files are valid MP3 format with proper MIME types (`audio/mpeg`)
-
-## Changelog
-- July 08, 2025. Initial setup
-- July 08, 2025. Added Firebase Firestore and Storage integration with offline support
-- July 10, 2025. Successfully migrated project from Replit Agent to Replit environment
-- July 10, 2025. Enhanced Firebase integration with retry logic and automatic hymn number generation
-- July 10, 2025. Added automatic hymn list refresh after new hymn addition
-- July 10, 2025. Implemented comprehensive upload progress tracking with file validation and error handling
-- July 10, 2025. Added retry logic for Firestore operations to handle WebChannel transport errors
-- July 10, 2025. Added Firebase debugging utilities and connectivity testing tools
-- July 10, 2025. **FIXED**: Resolved Firebase failed-precondition errors by migrating all queries to REST API
-- July 10, 2025. **FIXED**: Corrected Firebase Storage URL formatting and authentication issues  
-- July 10, 2025. **MIGRATED**: Successfully completed migration from Replit Agent to Replit environment
-- July 10, 2025. Completed migration to Replit environment with Firebase configuration and authentication working
-- July 11, 2025. **DEPLOY READY**: Created all Firebase Hosting configuration files and deploy guides
-- July 11, 2025. **ISSUE IDENTIFIED**: Upload fails due to CORS - domain authorization needed for Firebase Storage
-- July 11, 2025. **SOLUTION**: Deploy to Firebase Hosting will resolve CORS issues automatically
-- July 11, 2025. **BUILD COMPLETED**: Successfully built application with 1746 modules transformed
-- July 11, 2025. **DEPLOY PACKAGE READY**: All files prepared for Firebase Hosting deployment
-- July 11, 2025. **AUDIO ISSUE IDENTIFIED**: Media playback fails due to CORS restrictions on Firebase Storage URLs in local development
-- July 11, 2025. **PARTIAL FIX APPLIED**: URL cleaning implemented to remove trailing whitespace, improved error handling and debugging tools added
-- July 11, 2025. **DEPLOY READY**: Application built successfully with 1746 modules, production files created, ready for Firebase Hosting deployment
-- July 11, 2025. **CORS SOLUTION IDENTIFIED**: Deploy to Firebase Hosting will automatically resolve CORS restrictions for audio playback
-- July 11, 2025. **PRODUCTION DEPLOYMENT READY**: Complete deployment package prepared with 11 optimized files (710KB total)
-- July 11, 2025. **DEPLOYMENT GUIDES CREATED**: Manual deployment instructions and automated scripts ready for Firebase Hosting
-- July 11, 2025. **MIGRATION COMPLETED**: Successfully migrated from Replit Agent to Replit environment with all dependencies working
-- July 11, 2025. **AUDIO CORS ISSUE ADDRESSED**: Implemented retry logic and improved error handling for Firebase Storage audio playback in development
-- July 13, 2025. **DOM ERROR FIXED**: Resolved "Failed to execute 'removeChild' on 'Node" production error with safe DOM utilities and proper cleanup handling
-- July 13, 2025. **COMPLETE DOM PROTECTION**: Applied comprehensive safety checks to all removeEventListener, getElementById, and DOM manipulation calls across all components
-- July 13, 2025. **SAFE SELECT COMPONENT**: Created custom SafeSelect component to replace Radix UI Select, eliminating Portal-related DOM errors during organ selection
-- July 13, 2025. **FORM PROTECTION**: Added comprehensive error handling to all form interactions, callbacks, and event handlers in firebase-admin component
-- July 13, 2025. **COMPREHENSIVE DOM ISOLATION**: Applied setTimeout delays, useCallback hooks, and ProtectedForm wrapper to prevent immediate state conflicts
-- July 13, 2025. **EVENT LISTENER PROTECTION**: Enhanced all addEventListener/removeEventListener calls with mounting state checks and cleanup isolation
-- July 13, 2025. **ASYNC ERROR HANDLING**: Protected all onChange handlers with try-catch, delayed DOM manipulation, and isolated event dispatching
-- July 13, 2025. **MIGRATION COMPLETED**: Successfully migrated project from Replit Agent to Replit environment with all dependencies working properly
-- July 13, 2025. **FIREBASE INTEGRATION COMPLETE**: All Firebase environment variables configured and authentication working successfully
-- July 13, 2025. **DOM ERROR RESOLUTION**: Fixed insertBefore DOM manipulation errors while maintaining proper form submission flow
-- July 13, 2025. **COMPLETE DOM REDESIGN**: Eliminated all direct DOM manipulation, replaced toast system with React-only SafeToastProvider, simplified event handling to prevent insertBefore errors
-- July 13, 2025. **SAFE TOAST SYSTEM**: Created custom SafeToastProvider using React state management only, eliminating all DOM manipulation conflicts
-- July 13, 2025. **SIMPLIFIED EVENT HANDLING**: Replaced complex DOM utilities with standard addEventListener/removeEventListener for cleaner React integration
-- July 13, 2025. **MIGRATION COMPLETED**: Successfully migrated project from Replit Agent to Replit environment with Firebase credentials configured
-- July 13, 2025. **FIREBASE COMPLETE**: All Firebase environment variables configured and authentication working successfully
-- July 14, 2025. **CRITICAL DOM ERROR RESOLVED**: Fixed persistent insertBefore DOM manipulation error by replacing Loader2 components with SimpleSpinner CSS-based spinner, eliminating conflicts with @replit/vite-plugin-runtime-error-modal
-- July 14, 2025. **SIMPLIFIED TOAST SYSTEM**: Replaced complex SafeToastProvider with SimpleToastContainer using only React state management, no DOM portals or manipulation
-- July 14, 2025. **MIGRATION FINALIZED**: All DOM manipulation conflicts resolved, application running cleanly in Replit environment without runtime errors
-- July 14, 2025. **CORS ISSUE IDENTIFIED**: Firebase Storage audio playback fails due to CORS restrictions in development environment
-- July 14, 2025. **USER-FRIENDLY ERROR HANDLING**: Added comprehensive CORS error message component explaining deployment solution to user
-- July 14, 2025. **AUDIO ERROR HANDLING**: Implemented retry logic and informative error messages for Firebase Storage CORS issues
-- August 10, 2025. **AUTHENTICATION SYSTEM IMPLEMENTED**: Added Firebase email/password authentication with protected routes
-- August 10, 2025. **LOGIN SYSTEM CREATED**: Implemented /login page with secure authentication flow and user-friendly error handling
-- August 10, 2025. **PROTECTED ROUTES**: Created ProtectedRoute component and /config page accessible only to authenticated users
-- August 10, 2025. **SETTINGS INTEGRATION**: Updated layout to include settings gear button that redirects to /config (requires login)
-- August 10, 2025. **FIREBASE SECURITY RULES**: Configured Firestore and Storage rules for public read access and authenticated write access
-- August 10, 2025. **AUTHENTICATION CONTEXT**: Created AuthProvider context for managing user sessions across the application
-
-## Authentication System
-
-### Overview
-The application now includes a comprehensive authentication system using Firebase Auth with email/password authentication.
-
-### Authentication Flow
-1. **Settings Access**: Click gear icon on home page → redirects to `/config`
-2. **Login Requirement**: If not authenticated → redirects to `/login`
-3. **Secure Login**: Email/password authentication with Firebase Auth
-4. **Protected Access**: Only authenticated users can access configuration features
-
-### Routes
-- `/login` - Authentication page with email/password form
-- `/config` - Protected configuration dashboard (requires login)
-- `/admin` - Hymn management (accessible from config page)
-
-### Security
-- **Public Access**: Anyone can view and listen to hymns
-- **Protected Actions**: Only authenticated users can upload/manage hymns
-- **Firebase Rules**: Configured for public read, authenticated write
-
-### Firebase Rules Configuration
-- **Firestore**: Public read access, authenticated write for hymns collection
-- **Storage**: Public read access for audio files, authenticated write for uploads
-
-## User Preferences
-Preferred communication style: Simple, everyday language.
+### Firebase Integration
+- **Firestore**: Used for hymn data storage (`hinos` collection with fields like `numero`, `titulo`, `orgao`, `audioPath`, `criadoEm`).
+- **Firebase Storage**: Stores audio files for hymns, with a naming convention of `{organ}-{number}-{timestamp}.mp3`.
+- **Authentication**: Firebase Auth for user login and protected actions.
+- **Offline Functionality**: Downloads hymn data and audio URLs on first load, stores in localStorage for offline access, with connection status indication and automatic fallback.
