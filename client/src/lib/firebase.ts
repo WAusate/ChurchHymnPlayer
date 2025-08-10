@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { getAuth, signInAnonymously } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -54,13 +54,9 @@ if (isFirebaseConfigured) {
   storage = getStorage(app);
   auth = getAuth(app);
 
-  // Sign in anonymously and expose promise to await authentication
-  authReady = signInAnonymously(auth).then(() => {
-    console.log('Firebase authentication successful');
-  }).catch(error => {
-    console.error('Anonymous sign-in failed:', error);
-    // Still resolve the promise to allow offline mode
-    return Promise.resolve();
+  // Initialize auth without anonymous sign-in for email/password authentication
+  authReady = Promise.resolve().then(() => {
+    console.log('Firebase authentication initialized');
   });
 } else {
   console.warn('Firebase not configured. Running in offline mode.');
