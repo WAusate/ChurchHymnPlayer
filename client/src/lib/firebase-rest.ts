@@ -116,10 +116,12 @@ export async function uploadFileToStorage(
       console.log('Sending file via XHR...');
       xhr.send(file);
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in uploadFileToStorage:', error);
-    console.error('Error details:', error.message, error.stack);
-    throw new Error(`Upload setup failed: ${error.message || 'Unknown error'}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('Error details:', errorMessage, errorStack);
+    throw new Error(`Upload setup failed: ${errorMessage}`);
   }
 }
 

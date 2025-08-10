@@ -194,5 +194,37 @@ If you encounter **"MEDIA_ELEMENT_ERROR: Format error"** during audio playback:
 - July 14, 2025. **CORS ISSUE IDENTIFIED**: Firebase Storage audio playback fails due to CORS restrictions in development environment
 - July 14, 2025. **USER-FRIENDLY ERROR HANDLING**: Added comprehensive CORS error message component explaining deployment solution to user
 - July 14, 2025. **AUDIO ERROR HANDLING**: Implemented retry logic and informative error messages for Firebase Storage CORS issues
+- August 10, 2025. **AUTHENTICATION SYSTEM IMPLEMENTED**: Added Firebase email/password authentication with protected routes
+- August 10, 2025. **LOGIN SYSTEM CREATED**: Implemented /login page with secure authentication flow and user-friendly error handling
+- August 10, 2025. **PROTECTED ROUTES**: Created ProtectedRoute component and /config page accessible only to authenticated users
+- August 10, 2025. **SETTINGS INTEGRATION**: Updated layout to include settings gear button that redirects to /config (requires login)
+- August 10, 2025. **FIREBASE SECURITY RULES**: Configured Firestore and Storage rules for public read access and authenticated write access
+- August 10, 2025. **AUTHENTICATION CONTEXT**: Created AuthProvider context for managing user sessions across the application
 
-## User PreferencesPreferred communication style: Simple, everyday language.
+## Authentication System
+
+### Overview
+The application now includes a comprehensive authentication system using Firebase Auth with email/password authentication.
+
+### Authentication Flow
+1. **Settings Access**: Click gear icon on home page → redirects to `/config`
+2. **Login Requirement**: If not authenticated → redirects to `/login`
+3. **Secure Login**: Email/password authentication with Firebase Auth
+4. **Protected Access**: Only authenticated users can access configuration features
+
+### Routes
+- `/login` - Authentication page with email/password form
+- `/config` - Protected configuration dashboard (requires login)
+- `/admin` - Hymn management (accessible from config page)
+
+### Security
+- **Public Access**: Anyone can view and listen to hymns
+- **Protected Actions**: Only authenticated users can upload/manage hymns
+- **Firebase Rules**: Configured for public read, authenticated write
+
+### Firebase Rules Configuration
+- **Firestore**: Public read access, authenticated write for hymns collection
+- **Storage**: Public read access for audio files, authenticated write for uploads
+
+## User Preferences
+Preferred communication style: Simple, everyday language.
