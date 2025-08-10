@@ -2,41 +2,20 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { HymnData } from '@shared/schema';
 import { showSimpleToast } from '@/components/simple-toast';
-// Remove DOM utils import as we're eliminating direct DOM manipulation
+import { getHymnsByOrganSDK, type Hymn } from '@/lib/firebaseSDK';
+import { isFirebaseConfigured } from '@/lib/firebase';
 
-// Firebase imports with error handling
-import * as firebaseStub from '@/lib/firebaseService.stub';
-
-let firebaseService: any = firebaseStub;
-let hasFirebaseService = false;
-
-// Check if Firebase is configured
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+// Organ name mapping
+const organNameMap: Record<string, string> = {
+  'coral': 'Coral',
+  'conjunto-musical': 'Conjunto Musical',
+  'criancas': 'Crianças',
+  'proati': 'PROATI',
+  'uniao-adolescentes': 'União de Adolescentes',
+  'grupo-jovem': 'Grupo Jovem',
+  'comissao': 'Comissão',
+  'campanha': 'Campanha'
 };
-
-const hasFirebaseConfig = Object.values(firebaseConfig).every(
-  value => value && !String(value).startsWith('your_')
-);
-
-if (hasFirebaseConfig) {
-  try {
-    // Import Firebase service dynamically
-    import('@/lib/firebaseService').then(module => {
-      firebaseService = module;
-      hasFirebaseService = true;
-    }).catch(error => {
-      console.log('Firebase service import failed:', error);
-    });
-  } catch (error) {
-    console.log('Firebase not configured, using fallback mode');
-  }
-}
 
 export function useHymns(organKey: string) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -74,10 +53,10 @@ export function useHymns(organKey: string) {
     };
   }, []);
 
-  // Load fallback data from JSON files
+  // Load fallback data from JSON files if Firebase not configured
   useEffect(() => {
     const loadFallbackData = async () => {
-      if (!hasFirebaseService && organKey) {
+      if (!isFirebaseConfigured && organKey) {
         setLoadingFallback(true);
         try {
           const response = await fetch(`/data/hymns/${organKey}.json`);
@@ -96,99 +75,56 @@ export function useHymns(organKey: string) {
     loadFallbackData();
   }, [organKey]);
 
-  // Initialize offline data if Firebase is available
+  // Mark as initialized when Firebase is available
   useEffect(() => {
-    const initializeData = async () => {
-      if (hasFirebaseService && isOnline && !firebaseService.hasOfflineData() && !isInitialized) {
-        try {
-          setIsInitialized(true);
-          await firebaseService.initializeOfflineData();
-          showSimpleToast("Hinos baixados para uso offline.", "success");
-        } catch (error) {
-          console.error('Failed to initialize offline data:', error);
-          showSimpleToast("Não foi possível baixar os dados para uso offline.", "error");
-        }
-      }
-    };
-
-    initializeData();
+    if (isFirebaseConfigured && isOnline && !isInitialized) {
+      setIsInitialized(true);
+    }
   }, [isOnline, isInitialized]);
 
-  // Query for online data (only if Firebase is available)
-  const onlineQuery = useQuery({
-    queryKey: ['hymns', organKey, 'online', refreshTrigger],
+  // Query for hymns using Firebase SDK (no authentication required for reading)
+  const hymnsQuery = useQuery({
+    queryKey: ['hymns', organKey, 'sdk', refreshTrigger],
     queryFn: async () => {
-      if (!hasFirebaseService) {
+      if (!isFirebaseConfigured) {
         throw new Error('Firebase not configured');
       }
-      
-      const organNameMap: Record<string, string> = {
-        'coral': 'Coral',
-        'conjunto-musical': 'Conjunto Musical',
-        'criancas': 'Crianças',
-        'proat': 'PROATI',
-        'uniao-adolescentes': 'União de Adolescentes',
-        'grupo-jovem': 'Grupo Jovem',
-        'comissao': 'Comissão',
-        'campanha': 'Campanha'
-      };
       
       const organName = organNameMap[organKey];
       if (!organName) {
         throw new Error('Órgão não encontrado');
       }
       
-      return await firebaseService.getHymnsByOrgan(organName);
+      return await getHymnsByOrganSDK(organName);
     },
-    enabled: hasFirebaseService && isOnline && Boolean(organKey),
-    staleTime: 0, // Don't cache to always get fresh data
+    enabled: isFirebaseConfigured && Boolean(organKey),
+    staleTime: 30000, // Cache for 30 seconds
     retry: 3,
   });
 
-  // Get offline data
-  const getOfflineData = () => {
-    if (!hasFirebaseService || !organKey) return [];
-    
-    const organNameMap: Record<string, string> = {
-      'coral': 'Coral',
-      'conjunto-musical': 'Conjunto Musical',
-      'criancas': 'Crianças',
-      'proat': 'PROATI',
-      'uniao-adolescentes': 'União de Adolescentes',
-      'grupo-jovem': 'Grupo Jovem',
-      'comissao': 'Comissão',
-      'campanha': 'Campanha'
-    };
-    
-    const organName = organNameMap[organKey];
-    return organName ? firebaseService.getOfflineHymnsByOrgan(organName) : [];
-  };
-
   // Determine which data to use
   let hymns: HymnData[] = [];
-  let firebaseHymns: any[] = [];
+  let firebaseHymns: Hymn[] = [];
   let isLoading = false;
   let error = null;
-  let hasOffline = false;
 
-  if (!hasFirebaseService) {
+  if (!isFirebaseConfigured) {
     // Fallback mode - use JSON files
     hymns = fallbackData;
     isLoading = loadingFallback;
+    firebaseHymns = [];
   } else {
-    // Firebase mode
-    const offlineData = !isOnline || onlineQuery.isError ? getOfflineData() : [];
-    const fbHymns = isOnline && onlineQuery.data ? onlineQuery.data : offlineData;
+    // Firebase SDK mode
+    const fbHymns = hymnsQuery.data || [];
     
     firebaseHymns = fbHymns;
-    hymns = fbHymns.map((hymn: any) => ({
+    hymns = fbHymns.map((hymn: Hymn) => ({
       titulo: hymn.titulo,
-      url: hymn.audioUrl
+      url: hymn.audioUrl || ''
     }));
     
-    isLoading = isOnline ? onlineQuery.isLoading : false;
-    error = isOnline ? onlineQuery.error : null;
-    hasOffline = firebaseService.hasOfflineData();
+    isLoading = hymnsQuery.isLoading;
+    error = hymnsQuery.error;
   }
 
   return {
@@ -197,8 +133,8 @@ export function useHymns(organKey: string) {
     isLoading,
     error,
     isOnline,
-    hasOfflineData: hasOffline,
-    refetch: onlineQuery?.refetch
+    hasOfflineData: false, // Offline data handled by browser cache now
+    refetch: hymnsQuery?.refetch
   };
 }
 
