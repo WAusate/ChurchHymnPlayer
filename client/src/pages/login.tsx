@@ -23,7 +23,7 @@ export default function Login() {
 
     try {
       await login(email, password);
-      setLocation('/admin');
+      setLocation('/config');
     } catch (err: any) {
       console.error('Login failed:', err);
       if (err.code === 'auth/user-not-found') {
