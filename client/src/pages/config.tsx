@@ -120,10 +120,6 @@ function ConfigContent() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <strong>Status do Firebase:</strong>
-                <span className="text-green-600 ml-2">Conectado</span>
-              </div>
-              <div>
                 <strong>Usuário logado:</strong>
                 <span className="ml-2">{user?.email}</span>
               </div>

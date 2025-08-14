@@ -1,6 +1,5 @@
 import Layout from "@/components/layout";
 import FirebaseAdmin from "@/components/firebase-admin";
-import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import { FirebaseConfigWarning } from "@/lib/firebase-check";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,10 +25,8 @@ function AdminContent() {
   return (
     <Layout title="Adicionar Hinos" showBackButton>
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Status do Firebase e informações do usuário */}
-        <div className="flex justify-between items-center">
-          <FirebaseConnectionStatus />
-          
+        {/* Informações do usuário */}
+        <div className="flex justify-end items-center">
           {user && (
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-700">
