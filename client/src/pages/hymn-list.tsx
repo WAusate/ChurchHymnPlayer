@@ -80,12 +80,10 @@ export default function HymnList({ organKey }: HymnListProps) {
       <div className="max-w-4xl mx-auto">
         <Card className="bg-white shadow-lg overflow-hidden">
           <div className="bg-church-primary p-6">
-            <div className="mb-2">
-              <h2 className="font-bold text-white text-[20px]">
-                Hinos do {organ.name}
-              </h2>
-            </div>
-            <p className="text-church-light text-[14px] ml-[96px] mr-[96px] pl-[76px] pr-[76px] pt-[0px] pb-[0px] mt-[-10px] mb-[-10px]">
+            <h2 className="text-2xl font-bold text-white mb-2">
+              Hinos do {organ.name}
+            </h2>
+            <p className="text-church-light">
               Selecione um hino para reproduzir
               {!isOnline && hasOfflineData && " (modo offline)"}
             </p>
