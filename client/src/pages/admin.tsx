@@ -4,92 +4,56 @@ import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import { FirebaseConfigWarning } from "@/lib/firebase-check";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import { useAuth } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useLocation } from "wouter";
+import { LogOut } from "lucide-react";
+import { isFirebaseConfigured } from "@/lib/firebase";
 
-// Firebase service with fallback
-import * as firebaseStub from '@/lib/firebaseService.stub';
-
-let firebaseService: any = firebaseStub;
-let hasFirebaseService = false;
-
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-};
-
-const hasFirebaseConfig = Object.values(firebaseConfig).every(
-  value => value && !String(value).startsWith('your_')
-);
-
-if (hasFirebaseConfig) {
-  try {
-    import('@/lib/firebaseService').then(module => {
-      firebaseService = module;
-      hasFirebaseService = true;
-    }).catch(error => {
-      console.log('Firebase service import failed:', error);
-    });
-  } catch (error) {
-    console.log('Firebase not configured, using fallback mode');
-  }
-}
-
-export default function Admin() {
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const auth = hasFirebaseConfig ? getAuth() : null;
-
-  useEffect(() => {
-    if (auth) {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        setUserEmail(user ? user.email : null);
-      });
-      return () => unsubscribe();
-    }
-  }, [auth]);
+function AdminContent() {
+  const { user, logout } = useAuth();
+  const [, setLocation] = useLocation();
 
   const handleLogout = async () => {
-    if (auth) {
-      await signOut(auth);
-      window.location.href = "/login";
+    try {
+      await logout();
+      setLocation('/');
+    } catch (error) {
+      console.error('Logout error:', error);
     }
   };
 
   return (
-    <Layout title="Configurações" showBackButton>
+    <Layout title="Adicionar Hinos" showBackButton>
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Chip do Firebase no topo, alinhado à direita */}
-        <div className="flex justify-end">
+        {/* Status do Firebase e informações do usuário */}
+        <div className="flex justify-between items-center">
           <FirebaseConnectionStatus />
+          
+          {user && (
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-700">
+                <strong>Usuário:</strong> {user.email}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="text-red-600 border-red-300 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* Logo abaixo: Login + Sair (apenas quando autenticado) */}
-        {userEmail && (
-          <div className="flex justify-end items-center gap-3 -mt-1">
-            <span className="text-sm text-gray-700">
-              <strong>Login:</strong> {userEmail}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="text-red-600 border-red-300 hover:bg-red-50"
-            >
-              Sair
-            </Button>
-          </div>
-        )}
-
-        {/* Aviso de configuração do Firebase */}
+        {/* Aviso de configuração do Firebase (se necessário) */}
         <FirebaseConfigWarning />
 
-        {/* Conteúdo principal: Adicionar Hino */}
+        {/* Formulário de adicionar hino */}
         <div className="flex justify-center">
-          {hasFirebaseConfig ? (
+          {isFirebaseConfigured ? (
             <FirebaseAdmin />
           ) : (
             <Card>
@@ -108,5 +72,13 @@ export default function Admin() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+export default function Admin() {
+  return (
+    <ProtectedRoute>
+      <AdminContent />
+    </ProtectedRoute>
   );
 }

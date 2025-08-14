@@ -23,7 +23,7 @@ export default function Login() {
 
     try {
       await login(email, password);
-      setLocation('/config');
+      setLocation('/admin');
     } catch (err: any) {
       console.error('Login failed:', err);
       if (err.code === 'auth/user-not-found') {
@@ -60,7 +60,7 @@ export default function Login() {
               Entrar
             </CardTitle>
             <CardDescription>
-              Faça login para acessar a área de configuração
+              Faça login para acessar a área de administração
             </CardDescription>
           </CardHeader>
           <CardContent>

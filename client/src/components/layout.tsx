@@ -62,13 +62,13 @@ export default function Layout({
     else navigate("/");
   };
 
-  // Engrenagem: se usuário logado vai para /config, senão vai para /login
+  // Engrenagem: se usuário logado vai para /admin, senão vai para /login
   const handleSettingsClick = () => {
     if (loading) return; // Evita navegação durante carregamento
     
     if (user) {
-      // Usuário autenticado - vai para configurações
-      navigate("/config");
+      // Usuário autenticado - vai direto para adicionar hinos
+      navigate("/admin");
     } else {
       // Usuário não autenticado - vai para login
       navigate("/login");
