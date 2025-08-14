@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import Layout from "@/components/layout";
 import AudioPlayer from "@/components/audio-player";
-import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import CorsErrorMessage from "@/components/cors-error-message";
 import { organs } from "@/lib/organs";
 import { useHymnByIndex } from "@/hooks/use-hymns";
@@ -113,11 +112,7 @@ export default function Player({ organKey, hymnIndex }: PlayerProps) {
       showBackButton={true}
       onBackClick={handleBack}
     >
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-4 flex justify-end">
-          <FirebaseConnectionStatus />
-        </div>
-        
+      <div className="max-w-2xl mx-auto">        
         {showCorsError ? (
           <CorsErrorMessage onRetry={handleRetryAudio} />
         ) : (

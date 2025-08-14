@@ -2,7 +2,6 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Layout from "@/components/layout";
-import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import { organs } from "@/lib/organs";
 import { useHymns } from "@/hooks/use-hymns";
 import { Play, ChevronRight } from "lucide-react";
@@ -81,11 +80,10 @@ export default function HymnList({ organKey }: HymnListProps) {
       <div className="max-w-4xl mx-auto">
         <Card className="bg-white shadow-lg overflow-hidden">
           <div className="bg-church-primary p-6">
-            <div className="flex justify-between items-start mb-2">
+            <div className="mb-2">
               <h2 className="text-2xl font-bold text-white">
                 Hinos do {organ.name}
               </h2>
-              <FirebaseConnectionStatus />
             </div>
             <p className="text-church-light">
               Selecione um hino para reproduzir
