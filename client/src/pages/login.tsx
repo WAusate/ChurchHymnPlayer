@@ -14,6 +14,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [redirecting, setRedirecting] = useState(false);
   const { login } = useAuth();
   const [, setLocation] = useLocation();
 
@@ -21,17 +22,22 @@ export default function Login() {
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsLoading(false); // Parar loading se autenticado
-        setLocation('/config');
+      if (user && !redirecting) {
+        setRedirecting(true);
+        setIsLoading(false);
+        setTimeout(() => {
+          setLocation('/config');
+        }, 100); // Pequeno delay para evitar throttling
       }
     });
 
     return () => unsubscribe();
-  }, [setLocation]);
+  }, [setLocation, redirecting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading || redirecting) return; // Prevenir múltiplos submits
+    
     setIsLoading(true);
     setError('');
 
@@ -40,6 +46,7 @@ export default function Login() {
       // O redirecionamento será feito pelo useEffect com onAuthStateChanged
     } catch (err: any) {
       console.error('Login failed:', err);
+      setRedirecting(false); // Reset redirecting em caso de erro
       if (err.code === 'auth/user-not-found') {
         setError('Usuário não encontrado');
       } else if (err.code === 'auth/wrong-password') {
@@ -129,9 +136,14 @@ export default function Login() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading || !email || !password}
+                disabled={isLoading || redirecting || !email || !password}
               >
-                {isLoading ? (
+                {redirecting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Redirecionando...
+                  </>
+                ) : isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     Entrando...
