@@ -89,7 +89,6 @@ export default function Layout({
           }}
         />
       )}
-
       <header
         className="shadow-lg relative flex items-center"
         style={{
@@ -133,7 +132,7 @@ export default function Layout({
 
               {/* Se tiver title => mostra título; senão mostra logo (Home) */}
               {title ? (
-                <h1 className="text-white text-2xl font-bold ml-5">{title}</h1>
+                <h1 className="text-white font-bold ml-5 text-[40px]">{title}</h1>
               ) : (
                 <img
                   src="/logo.svg"
@@ -172,9 +171,7 @@ export default function Layout({
           )}
         </div>
       </header>
-
       {/* Removido: barra de status Online/Sair do Layout para evitar duplicação */}
-
       <main className="container mx-auto px-4 py-8">{children}</main>
     </div>
   );
