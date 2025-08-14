@@ -32,6 +32,24 @@ export async function getHymnsByOrganSDK(organName: string): Promise<Hymn[]> {
     const querySnapshot = await getDocs(q);
     console.log('Firebase SDK query completed, documents found:', querySnapshot.size);
     
+    // If no documents found, let's also check if there are any documents with case variations
+    if (querySnapshot.size === 0) {
+      console.log('No documents found for exact match, checking all documents for debugging...');
+      const allDocsQuery = query(hymnsRef);
+      const allDocs = await getDocs(allDocsQuery);
+      console.log('Total documents in hinos collection:', allDocs.size);
+      
+      const organNames = new Set();
+      allDocs.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.orgao) {
+          organNames.add(data.orgao);
+        }
+      });
+      console.log('Available organ names in database:', Array.from(organNames));
+      console.log('Looking for organ name:', organName);
+    }
+    
     const hymns: Hymn[] = [];
     
     for (const doc of querySnapshot.docs) {

@@ -10,7 +10,7 @@ const organNameMap: Record<string, string> = {
   'coral': 'Coral',
   'conjunto-musical': 'Conjunto Musical',
   'criancas': 'Crianças',
-  'proati': 'PROATI',
+  'proat': 'PROATI',
   'uniao-adolescentes': 'União de Adolescentes',
   'grupo-jovem': 'Grupo Jovem',
   'comissao': 'Comissão',
