@@ -85,7 +85,7 @@ export default function HymnList({ organKey }: HymnListProps) {
                 Hinos do {organ.name}
               </h2>
             </div>
-            <p className="text-church-light text-[14px] ml-[96px] mr-[96px] pl-[76px] pr-[76px] pt-[0px] pb-[0px] mt-[0px] mb-[0px]">
+            <p className="text-church-light text-[14px] ml-[96px] mr-[96px] pl-[76px] pr-[76px] pt-[0px] pb-[0px] mt-[-10px] mb-[-10px]">
               Selecione um hino para reproduzir
               {!isOnline && hasOfflineData && " (modo offline)"}
             </p>
