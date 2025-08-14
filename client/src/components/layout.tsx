@@ -132,7 +132,7 @@ export default function Layout({
 
               {/* Se tiver title => mostra título; senão mostra logo (Home) */}
               {title ? (
-                <h1 className="text-white font-bold ml-5 text-[40px]">{title}</h1>
+                <h1 className="text-white font-bold ml-5 text-[35px]">{title}</h1>
               ) : (
                 <img
                   src="/logo.svg"
