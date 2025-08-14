@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -16,6 +17,18 @@ export default function Login() {
   const { login } = useAuth();
   const [, setLocation] = useLocation();
 
+  // Redirecionar automaticamente se já está autenticado
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user && !isLoading) {
+        setLocation('/config');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [setLocation, isLoading]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -23,7 +36,7 @@ export default function Login() {
 
     try {
       await login(email, password);
-      setLocation('/config');
+      // O redirecionamento será feito pelo useEffect com onAuthStateChanged
     } catch (err: any) {
       console.error('Login failed:', err);
       if (err.code === 'auth/user-not-found') {
@@ -37,7 +50,6 @@ export default function Login() {
       } else {
         setError('Erro ao fazer login. Tente novamente');
       }
-    } finally {
       setIsLoading(false);
     }
   };
