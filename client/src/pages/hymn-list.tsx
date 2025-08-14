@@ -81,7 +81,7 @@ export default function HymnList({ organKey }: HymnListProps) {
         <Card className="bg-white shadow-lg overflow-hidden">
           <div className="bg-church-primary p-6">
             <div className="mb-2">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="font-bold text-white text-[20px]">
                 Hinos do {organ.name}
               </h2>
             </div>
