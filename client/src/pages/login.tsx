@@ -21,13 +21,14 @@ export default function Login() {
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user && !isLoading) {
+      if (user) {
+        setIsLoading(false); // Parar loading se autenticado
         setLocation('/config');
       }
     });
 
     return () => unsubscribe();
-  }, [setLocation, isLoading]);
+  }, [setLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
