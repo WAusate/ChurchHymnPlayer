@@ -4,6 +4,7 @@ import { FirebaseConfigWarning } from "@/lib/firebase-check";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useLocation } from "wouter";
 import { LogOut } from "lucide-react";
 import { isFirebaseConfigured } from "@/lib/firebase";
