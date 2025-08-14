@@ -4,8 +4,8 @@ import FirebaseConnectionStatus from "@/components/firebase-connection-status";
 import { FirebaseConfigWarning } from "@/lib/firebase-check";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { showSimpleToast } from "@/components/simple-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 // Firebase service with fallback
 import * as firebaseStub from '@/lib/firebaseService.stub';
@@ -13,7 +13,6 @@ import * as firebaseStub from '@/lib/firebaseService.stub';
 let firebaseService: any = firebaseStub;
 let hasFirebaseService = false;
 
-// Check if Firebase is configured
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -29,7 +28,6 @@ const hasFirebaseConfig = Object.values(firebaseConfig).every(
 
 if (hasFirebaseConfig) {
   try {
-    // Import Firebase service dynamically
     import('@/lib/firebaseService').then(module => {
       firebaseService = module;
       hasFirebaseService = true;
@@ -42,20 +40,55 @@ if (hasFirebaseConfig) {
 }
 
 export default function Admin() {
-  // Using simple toast system to avoid DOM conflicts
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const auth = hasFirebaseConfig ? getAuth() : null;
+
+  useEffect(() => {
+    if (auth) {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setUserEmail(user ? user.email : null);
+      });
+      return () => unsubscribe();
+    }
+  }, [auth]);
+
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      window.location.href = "/login";
+    }
+  };
 
   return (
-    <Layout title="Configurações" showBackButton={true}>
+    <Layout title="Configurações" showBackButton>
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex justify-end items-center">
+        {/* Chip do Firebase no topo, alinhado à direita */}
+        <div className="flex justify-end">
           <FirebaseConnectionStatus />
         </div>
 
-        {/* Configuration Status */}
+        {/* Logo abaixo: Login + Sair (apenas quando autenticado) */}
+        {userEmail && (
+          <div className="flex justify-end items-center gap-3 -mt-1">
+            <span className="text-sm text-gray-700">
+              <strong>Login:</strong> {userEmail}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="text-red-600 border-red-300 hover:bg-red-50"
+            >
+              Sair
+            </Button>
+          </div>
+        )}
+
+        {/* Aviso de configuração do Firebase */}
         <FirebaseConfigWarning />
 
+        {/* Conteúdo principal: Adicionar Hino */}
         <div className="flex justify-center">
-          {/* Add Hymn Card */}
           {hasFirebaseConfig ? (
             <FirebaseAdmin />
           ) : (

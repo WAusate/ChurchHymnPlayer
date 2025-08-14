@@ -20,7 +20,8 @@ function ConfigContent() {
   };
 
   return (
-    <Layout>
+    // >>> Alteração: passamos title="Configuração" e showBackButton
+    <Layout title="Configuração" showBackButton>
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -42,7 +43,7 @@ function ConfigContent() {
               </p>
             </div>
           </div>
-          
+
           <Button
             variant="outline"
             onClick={handleLogout}

@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import SplashScreen from "@/components/SplashScreen";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 // flag em memória (só vive enquanto a ABA estiver aberta)
 declare global {
@@ -13,11 +14,11 @@ declare global {
 
 interface LayoutProps {
   children: React.ReactNode;
-  title?: string;
+  title?: string;                 // quando presente, mostra TÍTULO (sem logo)
   breadcrumbs?: string[];
   showBackButton?: boolean;
   onBackClick?: () => void;
-  showSettingsButton?: boolean;
+  showSettingsButton?: boolean;   // engrenagem só na Home
 }
 
 export default function Layout({
@@ -29,6 +30,7 @@ export default function Layout({
   showSettingsButton = false,
 }: LayoutProps) {
   const [location, navigate] = useLocation();
+  const { user, loading } = useAuth();
 
   // 1) Marca quando a página vai recarregar/fechar
   useEffect(() => {
@@ -49,7 +51,6 @@ export default function Layout({
         navigate("/", { replace: true });
       }
     }
-    // roda uma única vez
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -61,8 +62,17 @@ export default function Layout({
     else navigate("/");
   };
 
+  // Engrenagem: se usuário logado vai para /config, senão vai para /login
   const handleSettingsClick = () => {
-    navigate("/config");
+    if (loading) return; // Evita navegação durante carregamento
+    
+    if (user) {
+      // Usuário autenticado - vai para configurações
+      navigate("/config");
+    } else {
+      // Usuário não autenticado - vai para login
+      navigate("/login");
+    }
   };
 
   return (
@@ -121,6 +131,7 @@ export default function Layout({
                 </Button>
               )}
 
+              {/* Se tiver title => mostra título; senão mostra logo (Home) */}
               {title ? (
                 <h1 className="text-white text-2xl font-bold ml-5">{title}</h1>
               ) : (
@@ -132,6 +143,7 @@ export default function Layout({
               )}
             </div>
 
+            {/* Engrenagem só aparece quando showSettingsButton = true (Home) */}
             {showSettingsButton && (
               <div className="flex items-center">
                 <Button
@@ -160,6 +172,8 @@ export default function Layout({
           )}
         </div>
       </header>
+
+      {/* Removido: barra de status Online/Sair do Layout para evitar duplicação */}
 
       <main className="container mx-auto px-4 py-8">{children}</main>
     </div>
