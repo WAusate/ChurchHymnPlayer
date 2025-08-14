@@ -41,7 +41,7 @@ export default function HymnList({ organKey }: HymnListProps) {
   if (isLoading) {
     return (
       <Layout 
-        title={`Hinos do ${organ.name}`}
+        title={organ.name}
         breadcrumbs={[organ.name]}
         showBackButton={true}
         onBackClick={handleBack}
@@ -57,7 +57,7 @@ export default function HymnList({ organKey }: HymnListProps) {
   if (error && !hasOfflineData) {
     return (
       <Layout 
-        title={`Hinos do ${organ.name}`}
+        title={organ.name}
         breadcrumbs={[organ.name]}
         showBackButton={true}
         onBackClick={handleBack}
@@ -73,7 +73,7 @@ export default function HymnList({ organKey }: HymnListProps) {
 
   return (
     <Layout 
-      title={`Hinos do ${organ.name}`}
+      title={organ.name}
       breadcrumbs={[organ.name]}
       showBackButton={true}
       onBackClick={handleBack}
