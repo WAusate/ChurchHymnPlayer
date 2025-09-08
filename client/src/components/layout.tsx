@@ -80,9 +80,9 @@ export default function Layout({
       {/* Splash por cima de tudo */}
       {showSplash && (
         <SplashScreen
-          holdMs={3200}
+          holdMs={1200}
           xfadeMs={950}
-          logoHoldMs={2500}
+          logoHoldMs={800}
           onFinish={() => {
             window.__splashShown = true; // marca como mostrado nesta ABA
             setShowSplash(false);
