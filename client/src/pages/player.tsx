@@ -5,6 +5,7 @@ import AudioPlayer from "@/components/audio-player";
 import CorsErrorMessage from "@/components/cors-error-message";
 import { organs } from "@/lib/organs";
 import { useHymnByIndex } from "@/hooks/use-hymns";
+import { useProgramacao } from "@/contexts/ProgramacaoContext";
 
 
 interface PlayerProps {
@@ -19,6 +20,7 @@ export default function Player({ organKey, hymnIndex }: PlayerProps) {
   const organ = organs.find((o) => o.key === organKey);
   const hymnIndexNum = parseInt(hymnIndex, 10);
   const { hymn, isLoading, error, isOnline } = useHymnByIndex(organKey, hymnIndexNum);
+  const { removeItem } = useProgramacao();
 
   const handleBack = () => {
     navigate(`/organ/${organKey}`);
@@ -116,7 +118,7 @@ export default function Player({ organKey, hymnIndex }: PlayerProps) {
         {showCorsError ? (
           <CorsErrorMessage onRetry={handleRetryAudio} />
         ) : (
-          <AudioPlayer hymn={hymn} onError={handleAudioError} />
+          <AudioPlayer hymn={hymn} onError={handleAudioError} onPlay={() => removeItem(organKey, hymnIndexNum)} />
         )}
         
         {audioError && !showCorsError && (

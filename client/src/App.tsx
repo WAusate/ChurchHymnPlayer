@@ -5,6 +5,7 @@ import { SimpleToastContainer } from "@/components/simple-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "@/components/error-boundary";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ProgramacaoProvider } from "@/contexts/ProgramacaoContext";
 import Home from "@/pages/home";
 import HymnList from "@/pages/hymn-list";
 import Player from "@/pages/player";
@@ -12,6 +13,7 @@ import Admin from "@/pages/admin";
 import Login from "@/pages/login";
 import Config from "@/pages/config";
 import NotFound from "@/pages/not-found";
+import Programacao from "@/pages/programacao";
 
 function Router() {
   return (
@@ -23,6 +25,7 @@ function Router() {
       <Route path="/organ/:organKey/hymn/:hymnIndex">
         {(params) => <Player organKey={params.organKey} hymnIndex={params.hymnIndex} />}
       </Route>
+      <Route path="/programacao" component={Programacao} />
       <Route path="/admin" component={Admin} />
       <Route path="/login" component={Login} />
       <Route path="/config" component={Config} />
@@ -36,12 +39,14 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <TooltipProvider>
-            <div className="min-h-screen bg-gray-50">
-              <Router />
-              <SimpleToastContainer />
-            </div>
-          </TooltipProvider>
+          <ProgramacaoProvider>
+            <TooltipProvider>
+              <div className="min-h-screen bg-gray-50">
+                <Router />
+                <SimpleToastContainer />
+              </div>
+            </TooltipProvider>
+          </ProgramacaoProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>

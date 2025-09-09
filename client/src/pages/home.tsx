@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Layout from "@/components/layout";
 import { organs } from "@/lib/organs";
-import { 
-  Users, 
+import {
+  Users,
   Music, 
   Baby, 
   UserCheck, 
@@ -14,6 +14,8 @@ import {
   Flag,
   ChevronRight
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useProgramacao } from "@/contexts/ProgramacaoContext";
 
 const iconMap = {
   users: Users,
@@ -28,6 +30,7 @@ const iconMap = {
 
 export default function Home() {
   const [, navigate] = useLocation();
+  const { programacao } = useProgramacao();
 
   const handleOrganSelect = (organKey: string) => {
     navigate(`/organ/${organKey}`);
@@ -43,6 +46,17 @@ export default function Home() {
           <p className="text-church-text opacity-75">
             Escolha o órgão da igreja para acessar os hinos
           </p>
+        </div>
+
+        <div className="flex justify-center mb-6">
+          <Button onClick={() => navigate('/programacao')} className="relative">
+            Programação
+            {programacao.length > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {programacao.length}
+              </Badge>
+            )}
+          </Button>
         </div>
 
         <div className="flex flex-col items-center">
