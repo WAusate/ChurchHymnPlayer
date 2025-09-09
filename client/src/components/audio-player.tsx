@@ -7,9 +7,10 @@ import { HymnData } from "@shared/schema";
 interface AudioPlayerProps {
   hymn: HymnData;
   onError?: (error: string) => void;
+  onPlay?: () => void;
 }
 
-export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
+export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -245,6 +246,7 @@ export default function AudioPlayer({ hymn, onError }: AudioPlayerProps) {
         
         await audio.play();
         setIsPlaying(true);
+        onPlay?.();
       }
     } catch (error) {
       console.error('Audio player error:', error);

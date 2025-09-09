@@ -5,6 +5,8 @@ import Layout from "@/components/layout";
 import { organs } from "@/lib/organs";
 import { useHymns } from "@/hooks/use-hymns";
 import { Play, ChevronRight } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useProgramacao } from "@/contexts/ProgramacaoContext";
 
 interface HymnListProps {
   organKey: string;
@@ -14,6 +16,7 @@ export default function HymnList({ organKey }: HymnListProps) {
   const [, navigate] = useLocation();
   const organ = organs.find((o) => o.key === organKey);
   const { hymns, isLoading, error, isOnline, hasOfflineData } = useHymns(organKey);
+  const { toggleItem, isProgrammed } = useProgramacao();
 
   const handleHymnSelect = (hymnIndex: number) => {
     navigate(`/organ/${organKey}/hymn/${hymnIndex}`);
@@ -121,7 +124,14 @@ export default function HymnList({ organKey }: HymnListProps) {
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center">
+                          <div className="flex items-center space-x-2">
+                            <label className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                              <Checkbox
+                                checked={isProgrammed(organKey, index)}
+                                onCheckedChange={() => toggleItem({ organKey, hymnIndex: index, titulo: hymn.titulo })}
+                              />
+                              <span className="text-sm text-church-text">Programar</span>
+                            </label>
                             <Play className="text-church-accent text-lg mr-2 opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5" />
                             <ChevronRight className="text-church-text opacity-40 group-hover:opacity-100 transition-opacity h-4 w-4" />
                           </div>
