@@ -1,0 +1,302 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Simple spinner animation to avoid conflicts with Vite plugins */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+:root {
+  --background: hsl(240, 6%, 97%);
+  --foreground: hsl(210, 11%, 17%);
+  --muted: hsl(210, 6%, 96%);
+  --muted-foreground: hsl(210, 5%, 45%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(210, 11%, 17%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(210, 11%, 17%);
+  --border: hsl(210, 6%, 90%);
+  --input: hsl(210, 6%, 90%);
+  --primary: hsl(194, 100%, 19%);
+  --primary-foreground: hsl(210, 100%, 99%);
+  --secondary: hsl(210, 6%, 96%);
+  --secondary-foreground: hsl(210, 11%, 10%);
+  --accent: hsl(210, 6%, 96%);
+  --accent-foreground: hsl(210, 11%, 10%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(60, 9%, 98%);
+  --ring: hsl(210, 11%, 17%);
+  --radius: 0.5rem;
+  
+  /* Church color palette - Updated */
+  --church-primary: hsl(215, 71%, 16%);  /* #0F2247 - Azul escuro */
+  --church-secondary: hsl(196, 86%, 58%); /* #4DB4E7 - Azul claro */
+  --church-light: hsl(0, 0%, 100%);       /* #FFFFFF - Branco */
+  --church-accent: hsl(196, 86%, 58%);    /* #4DB4E7 - Azul claro */
+  --church-bg: hsl(0, 0%, 100%);          /* #FFFFFF - Branco */
+  --church-text: hsl(0, 0%, 17%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 4%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 4%, 16%);
+  --muted-foreground: hsl(240, 5%, 65%);
+  --popover: hsl(240, 10%, 4%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 4%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 4%, 16%);
+  --input: hsl(240, 4%, 16%);
+  --primary: hsl(194, 100%, 19%);
+  --primary-foreground: hsl(210, 100%, 99%);
+  --secondary: hsl(240, 4%, 16%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 4%, 16%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 63%, 31%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 5%, 84%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply antialiased bg-church-bg text-church-text;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+}
+
+/* Custom church theme classes */
+.bg-church-primary {
+  background-color: var(--church-primary);
+}
+
+/* Audio visualizer animation */
+.audio-bar {
+  animation: audio-bounce infinite ease-in-out;
+  transform-origin: bottom;
+}
+
+@keyframes audio-bounce {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.3);
+  }
+}
+
+/* Mobile-first improvements */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .grid {
+    gap: 1rem;
+    justify-items: center;
+  }
+  
+  button {
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+  }
+  
+  h1, h2, h3 {
+    text-align: center;
+  }
+  
+  /* Centralizar botões em mobile */
+  .grid > button {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
+/* Enhanced button hover effects */
+.group:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.group:active {
+  transform: translateY(0) scale(1);
+}
+
+/* Card styling improvements */
+.card-organ {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card-organ:hover {
+  border-color: var(--church-secondary);
+  box-shadow: 0 8px 25px rgba(77, 180, 231, 0.2);
+}
+
+/* Hide Vite runtime error overlay that causes insertBefore errors */
+#vite-plugin-runtime-error-modal,
+.vite-error-overlay,
+div[data-testid="error-overlay"],
+*[data-testid="error-overlay"],
+*[id*="vite-plugin-runtime-error"],
+*[class*="vite-error-overlay"],
+*[class*="runtime-error-modal"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  z-index: -9999 !important;
+}
+
+/* Ensure error overlays are completely hidden */
+*[id*="error"],
+*[class*="error-overlay"],
+*[class*="runtime-error"] {
+  display: none !important;
+}
+
+/* Button specific improvements */
+.organ-button {
+  padding: 0;
+  width: 100%;
+  min-height: 80px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.organ-button:hover {
+  transform: scale(1.02);
+}
+
+.organ-button:active {
+  transform: scale(0.98);
+}
+
+.bg-church-secondary {
+  background-color: var(--church-secondary);
+}
+
+.bg-church-light {
+  background-color: var(--church-light);
+}
+
+.bg-church-accent {
+  background-color: var(--church-accent);
+}
+
+.bg-church-bg {
+  background-color: var(--church-bg);
+}
+
+.text-church-primary {
+  color: var(--church-primary);
+}
+
+.text-church-secondary {
+  color: var(--church-secondary);
+}
+
+.text-church-light {
+  color: var(--church-light);
+}
+
+.text-church-accent {
+  color: var(--church-accent);
+}
+
+.text-church-text {
+  color: var(--church-text);
+}
+
+.border-church-secondary {
+  border-color: var(--church-secondary);
+}
+
+.hover\:bg-church-secondary:hover {
+  background-color: var(--church-secondary);
+}
+
+.hover\:text-church-primary:hover {
+  color: var(--church-primary);
+}
+
+.hover\:text-church-accent:hover {
+  color: var(--church-accent);
+}
+
+.hover\:border-church-secondary:hover {
+  border-color: var(--church-secondary);
+}
+
+.group:hover .group-hover\:text-church-primary {
+  color: var(--church-primary);
+}
+
+.group:hover .group-hover\:opacity-100 {
+  opacity: 1;
+}
+
+/* === Splash (tela de carregamento) === */
+.splash__backdrop{
+  position: fixed; inset: 0; z-index: 9999;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg,#0a2a59,#0f4e98);
+}
+.splash__eq{
+  width: 200px; height: 200px; position: relative;
+  display: grid; place-items: center;
+}
+.splash__eq::before{
+  content: ""; position: absolute; inset: 0; z-index: -1; opacity: .22;
+  background: radial-gradient(60% 60% at 50% 50%, rgba(255,255,255,.45), transparent 60%);
+  filter: blur(18px);
+}
+.splash__bar{
+  width: 16px; border-radius: 999px;
+  background: linear-gradient(180deg,#05d7ff,#34c17d);
+  box-shadow: 0 6px 24px rgba(0,0,0,.25), 0 0 18px rgba(5,215,255,.15) inset;
+  transform-origin: center;
+  animation: splash-eq-center 1.2s ease-in-out infinite;
+}
+.splash__eq{ display:flex; gap:14px; align-items:center; height:160px; }
+.splash__bar.b1{ height: 80px;  --amp:.45; animation-delay: .00s }
+.splash__bar.b2{ height:140px;  --amp:.95; animation-delay: .15s }
+.splash__bar.b3{ height:110px;  --amp:.70; animation-delay: .30s }
+.splash__bar.b4{ height: 90px;  --amp:.80; animation-delay: .45s }
+
+@keyframes splash-eq-center{
+  0%   { transform: scaleY(calc(.70 + var(--amp)*.05)); }
+  25%  { transform: scaleY(calc(.95 + var(--amp)*.35)); }
+  50%  { transform: scaleY(calc(1.15 + var(--amp)*.20)); }
+  75%  { transform: scaleY(calc(.90 + var(--amp)*.30)); }
+  100% { transform: scaleY(calc(.70 + var(--amp)*.05)); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .splash__bar{ animation: none }
+}

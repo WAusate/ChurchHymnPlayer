@@ -1,0 +1,60 @@
+{
+  "timestamp": "2025-07-11T20:54:23.574Z",
+  "project": "app-hinos",
+  "sourceDir": "./dist/public",
+  "files": [
+    {
+      "path": "assets/index-C_TByCg2.css",
+      "size": 62470
+    },
+    {
+      "path": "assets/index-DlzIa7fE.js",
+      "size": 662131
+    },
+    {
+      "path": "data/hymns/campanha.json",
+      "size": 420
+    },
+    {
+      "path": "data/hymns/comissao.json",
+      "size": 427
+    },
+    {
+      "path": "data/hymns/conjunto-musical.json",
+      "size": 388
+    },
+    {
+      "path": "data/hymns/coral.json",
+      "size": 655
+    },
+    {
+      "path": "data/hymns/criancas.json",
+      "size": 415
+    },
+    {
+      "path": "data/hymns/grupo-jovem.json",
+      "size": 404
+    },
+    {
+      "path": "data/hymns/proat.json",
+      "size": 392
+    },
+    {
+      "path": "data/hymns/uniao-adolescentes.json",
+      "size": 395
+    },
+    {
+      "path": "index.html",
+      "size": 625
+    }
+  ],
+  "totalSize": 728722,
+  "config": {
+    "apiKey": "AIzaSyAWLbxmvwAKx1_rXS_4qMcZWttCRbPsyF4",
+    "authDomain": "app-hinos.firebaseapp.com",
+    "projectId": "app-hinos",
+    "storageBucket": "app-hinos.firebasestorage.app",
+    "messagingSenderId": "1070834473436",
+    "appId": "1:1070834473436:web:ff068364f18cb587f25719"
+  }
+}

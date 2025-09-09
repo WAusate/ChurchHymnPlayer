@@ -1,0 +1,213 @@
+"use client"
+
+import * as React from "react"
+import { Check, ChevronDown } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+interface SafeSelectProps {
+  value?: string
+  onValueChange?: (value: string) => void
+  placeholder?: string
+  children: React.ReactNode
+  className?: string
+}
+
+interface SafeSelectItemProps {
+  value: string
+  children: React.ReactNode
+  className?: string
+}
+
+const SafeSelectContext = React.createContext<{
+  value?: string
+  onValueChange?: (value: string) => void
+  isOpen: boolean
+  setIsOpen: (open: boolean) => void
+}>({
+  isOpen: false,
+  setIsOpen: () => {},
+})
+
+const SafeSelect = ({ value, onValueChange, placeholder, children, className }: SafeSelectProps) => {
+  const [isOpen, setIsOpen] = React.useState(false)
+  const [isMounted, setIsMounted] = React.useState(false)
+  const selectRef = React.useRef<HTMLDivElement>(null)
+  const cleanupRef = React.useRef<Array<() => void>>([])
+
+  // Track mounting state to prevent cleanup errors
+  React.useEffect(() => {
+    setIsMounted(true)
+    return () => {
+      setIsMounted(false)
+      // Clean up all event listeners safely
+      cleanupRef.current.forEach(cleanup => {
+        try {
+          cleanup()
+        } catch (error) {
+          console.warn('Select cleanup error:', error)
+        }
+      })
+      cleanupRef.current = []
+    }
+  }, [])
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    if (!isMounted) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      try {
+        // More robust DOM node checking
+        const target = event.target as Node
+        if (target && selectRef.current) {
+          // Check if elements are still in DOM before contains check
+          if (document.contains(selectRef.current) && document.contains(target)) {
+            if (!selectRef.current.contains(target) && isMounted) {
+              setIsOpen(false)
+            }
+          } else if (isMounted) {
+            // If nodes are not in DOM, safely close
+            setIsOpen(false)
+          }
+        }
+      } catch (error) {
+        // Silently handle DOM access errors
+        console.warn('Select click outside error:', error)
+        if (isMounted) {
+          setIsOpen(false)
+        }
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      const cleanup = () => document.removeEventListener('mousedown', handleClickOutside)
+      cleanupRef.current.push(cleanup)
+      
+      return cleanup
+    }
+  }, [isOpen, isMounted])
+
+  // Close dropdown on escape key
+  React.useEffect(() => {
+    if (!isMounted) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isMounted) {
+        setIsOpen(false)
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown)
+      const cleanup = () => document.removeEventListener('keydown', handleKeyDown)
+      cleanupRef.current.push(cleanup)
+      
+      return cleanup
+    }
+  }, [isOpen, isMounted])
+
+  const contextValue = React.useMemo(() => ({
+    value,
+    onValueChange,
+    isOpen,
+    setIsOpen,
+  }), [value, onValueChange, isOpen])
+
+  return (
+    <SafeSelectContext.Provider value={contextValue}>
+      <div ref={selectRef} className={cn("relative", className)}>
+        <SafeSelectTrigger placeholder={placeholder} />
+        {isOpen && (
+          <SafeSelectContent>
+            {children}
+          </SafeSelectContent>
+        )}
+      </div>
+    </SafeSelectContext.Provider>
+  )
+}
+
+const SafeSelectTrigger = ({ placeholder }: { placeholder?: string }) => {
+  const { value, isOpen, setIsOpen } = React.useContext(SafeSelectContext)
+
+  const handleClick = React.useCallback(() => {
+    try {
+      setIsOpen(!isOpen)
+    } catch (error) {
+      console.warn('Select trigger error:', error)
+    }
+  }, [isOpen, setIsOpen])
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className={cn(
+        "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+        "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        "[&>span]:line-clamp-1"
+      )}
+    >
+      <span className={cn(!value && "text-muted-foreground")}>
+        {value || placeholder}
+      </span>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </button>
+  )
+}
+
+const SafeSelectContent = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className={cn(
+      "absolute top-full left-0 right-0 z-50 mt-1",
+      "max-h-60 overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md",
+      "animate-in fade-in-0 zoom-in-95"
+    )}>
+      <div className="p-1">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+const SafeSelectItem = ({ value, children, className }: SafeSelectItemProps) => {
+  const { value: selectedValue, onValueChange, setIsOpen } = React.useContext(SafeSelectContext)
+  const isSelected = value === selectedValue
+
+  const handleClick = React.useCallback(() => {
+    try {
+      // Use setTimeout to prevent immediate state conflicts
+      setTimeout(() => {
+        try {
+          onValueChange?.(value)
+          setIsOpen(false)
+        } catch (error) {
+          console.warn('Select item delayed error:', error)
+        }
+      }, 0)
+    } catch (error) {
+      console.warn('Select item error:', error)
+    }
+  }, [value, onValueChange, setIsOpen])
+
+  return (
+    <div
+      onClick={handleClick}
+      className={cn(
+        "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm",
+        "outline-none hover:bg-accent hover:text-accent-foreground",
+        "focus:bg-accent focus:text-accent-foreground",
+        className
+      )}
+    >
+      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        {isSelected && <Check className="h-4 w-4" />}
+      </span>
+      {children}
+    </div>
+  )
+}
+
+export { SafeSelect, SafeSelectItem }
