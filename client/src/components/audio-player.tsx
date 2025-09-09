@@ -142,12 +142,22 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
       setIsLoading(false);
     };
 
+    const handlePlayEvent = () => {
+      setIsPlaying(true);
+    };
+
+    const handlePauseEvent = () => {
+      setIsPlaying(false);
+    };
+
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
     audio.addEventListener("loadstart", handleLoadStart);
     audio.addEventListener("canplay", handleCanPlay);
+    audio.addEventListener("play", handlePlayEvent);
+    audio.addEventListener("pause", handlePauseEvent);
 
     return () => {
       // Safely remove event listeners only if audio element still exists
@@ -159,6 +169,8 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
           audio.removeEventListener("error", handleError);
           audio.removeEventListener("loadstart", handleLoadStart);
           audio.removeEventListener("canplay", handleCanPlay);
+          audio.removeEventListener("play", handlePlayEvent);
+          audio.removeEventListener("pause", handlePauseEvent);
         } catch (error) {
           // Silently handle cleanup errors in production
           console.warn('Audio cleanup error:', error);
@@ -384,7 +396,7 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
               {[...Array(15)].map((_, i) => (
                 <div
                   key={i}
-                  className="bg-gradient-to-t from-church-primary to-church-secondary rounded-t-sm audio-bar"
+                  className="rounded-t-sm equalizer-bar"
                   style={{
                     width: '4px',
                     height: `${8 + (i % 3) * 4}px`,
