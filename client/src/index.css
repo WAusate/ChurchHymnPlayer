@@ -85,10 +85,12 @@
 }
 
 /* Equalizer pulse animation for the player */
-.equalizer-bar {
-  animation: equalizer-pulse 1s ease-in-out infinite;
-  transform-origin: bottom;
-  background: linear-gradient(to top, var(--church-primary), var(--church-secondary));
+@layer components {
+  .equalizer-bar {
+    animation: equalizer-pulse 1s ease-in-out infinite;
+    transform-origin: bottom;
+    background: linear-gradient(to top, var(--church-primary), var(--church-secondary));
+  }
 }
 
 @keyframes equalizer-pulse {
