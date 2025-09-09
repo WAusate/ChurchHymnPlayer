@@ -84,18 +84,18 @@
   background-color: var(--church-primary);
 }
 
-/* Audio visualizer animation */
-.audio-bar {
-  animation: audio-bounce infinite ease-in-out;
+/* Equalizer pulse animation for the player */
+.equalizer-bar {
+  animation: equalizer-pulse 1s ease-in-out infinite;
   transform-origin: bottom;
 }
 
-@keyframes audio-bounce {
+@keyframes equalizer-pulse {
   0%, 100% {
-    transform: scaleY(1);
+    transform: scaleY(0.4);
   }
   50% {
-    transform: scaleY(0.3);
+    transform: scaleY(1);
   }
 }
 

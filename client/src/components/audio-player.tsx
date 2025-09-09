@@ -384,7 +384,7 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
               {[...Array(15)].map((_, i) => (
                 <div
                   key={i}
-                  className="bg-gradient-to-t from-church-primary to-church-secondary rounded-t-sm audio-bar"
+                  className="bg-gradient-to-t from-church-primary to-church-secondary rounded-t-sm equalizer-bar"
                   style={{
                     width: '4px',
                     height: `${8 + (i % 3) * 4}px`,
