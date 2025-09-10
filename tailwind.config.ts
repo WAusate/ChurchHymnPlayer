@@ -61,8 +61,6 @@ export default {
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
         },
-        "church-primary": "var(--church-primary)",
-        "church-secondary": "var(--church-secondary)",
       },
       keyframes: {
         "accordion-down": {

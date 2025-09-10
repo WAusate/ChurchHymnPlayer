@@ -84,11 +84,19 @@
   background-color: var(--church-primary);
 }
 
-/* Equalizer bars for the player */
-.equalizer-bar {
+/* Audio visualizer animation */
+.audio-bar {
+  animation: audio-bounce infinite ease-in-out;
   transform-origin: bottom;
-  background: linear-gradient(to top, var(--church-primary), var(--church-secondary));
-  transition: height 0.1s ease;
+}
+
+@keyframes audio-bounce {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.3);
+  }
 }
 
 /* Mobile-first improvements */

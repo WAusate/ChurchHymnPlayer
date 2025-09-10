@@ -18,11 +18,6 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
   const [volume, setVolume] = useState(50);
   const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const barsRef = useRef<HTMLDivElement[]>([]);
-  const animationRef = useRef<number>();
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const dataArrayRef = useRef<Uint8Array | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -147,22 +142,12 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
       setIsLoading(false);
     };
 
-    const handlePlayEvent = () => {
-      setIsPlaying(true);
-    };
-
-    const handlePauseEvent = () => {
-      setIsPlaying(false);
-    };
-
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
     audio.addEventListener("loadstart", handleLoadStart);
     audio.addEventListener("canplay", handleCanPlay);
-    audio.addEventListener("play", handlePlayEvent);
-    audio.addEventListener("pause", handlePauseEvent);
 
     return () => {
       // Safely remove event listeners only if audio element still exists
@@ -174,8 +159,6 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
           audio.removeEventListener("error", handleError);
           audio.removeEventListener("loadstart", handleLoadStart);
           audio.removeEventListener("canplay", handleCanPlay);
-          audio.removeEventListener("play", handlePlayEvent);
-          audio.removeEventListener("pause", handlePauseEvent);
         } catch (error) {
           // Silently handle cleanup errors in production
           console.warn('Audio cleanup error:', error);
@@ -190,50 +173,6 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
       audio.volume = isMuted ? 0 : volume / 100;
     }
   }, [volume, isMuted]);
-
-  useEffect(() => {
-    if (isPlaying) {
-      let audioCtx = audioCtxRef.current;
-      if (!audioCtx) {
-        const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
-        audioCtx = new AudioContextClass();
-        audioCtxRef.current = audioCtx;
-        const source = audioCtx.createMediaElementSource(audioRef.current!);
-        const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 64;
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        analyserRef.current = analyser;
-        dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
-      } else if (audioCtx.state === "suspended") {
-        audioCtx.resume();
-      }
-
-      const animate = () => {
-        const analyser = analyserRef.current;
-        const dataArray = dataArrayRef.current;
-        if (analyser && dataArray) {
-          analyser.getByteFrequencyData(dataArray);
-          barsRef.current.forEach((bar, i) => {
-            const value = dataArray[i] / 255;
-            const height = 8 + value * 24;
-            if (bar) bar.style.height = `${height}px`;
-          });
-        }
-        animationRef.current = requestAnimationFrame(animate);
-      };
-      animate();
-    } else {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      barsRef.current.forEach((bar) => {
-        if (bar) bar.style.height = "4px";
-      });
-    }
-
-    return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    };
-  }, [isPlaying]);
 
   const togglePlayPause = async () => {
     const audio = audioRef.current;
@@ -445,11 +384,13 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
               {[...Array(15)].map((_, i) => (
                 <div
                   key={i}
-                  ref={(el) => {
-                    if (el) barsRef.current[i] = el;
+                  className="bg-gradient-to-t from-church-primary to-church-secondary rounded-t-sm audio-bar"
+                  style={{
+                    width: '4px',
+                    height: `${8 + (i % 3) * 4}px`,
+                    animationDelay: `${i * 0.1}s`,
+                    animationDuration: `${0.5 + (i % 3) * 0.2}s`
                   }}
-                  className="rounded-t-sm equalizer-bar flex-none"
-                  style={{ width: '4px', height: '4px' }}
                 />
               ))}
             </div>
