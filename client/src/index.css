@@ -84,20 +84,11 @@
   background-color: var(--church-primary);
 }
 
-/* Equalizer pulse animation for the player */
+/* Equalizer bars for the player */
 .equalizer-bar {
   transform-origin: bottom;
   background: linear-gradient(to top, var(--church-primary), var(--church-secondary));
-  animation: equalizer-pulse 1s ease-in-out infinite;
-}
-
-@keyframes equalizer-pulse {
-  0%, 100% {
-    transform: scaleY(0.3);
-  }
-  50% {
-    transform: scaleY(1);
-  }
+  transition: height 0.1s ease;
 }
 
 /* Mobile-first improvements */
