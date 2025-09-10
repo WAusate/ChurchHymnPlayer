@@ -39,6 +39,21 @@ export default function Home() {
   return (
     <Layout showSettingsButton={true}>
       <div className="max-w-4xl mx-auto">
+
+        <div className="flex justify-center mb-6">
+          <Button 
+            onClick={() => navigate('/programacao')} 
+            className="relative px-8 py-8 text-xl rounded-xl font-semibold"
+          >
+            Programação
+            {programacao.length > 0 && (
+              <Badge variant="destructive" className="ml-3 px-3 py-1 text-sm">
+                {programacao.length}
+              </Badge>
+            )}
+          </Button>
+
+        </div>
         <div className="text-center mb-8">
           <h2 className="font-bold text-church-primary mb-2 text-[27px]">
             Selecione o Órgão
@@ -48,16 +63,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex justify-center mb-6">
-          <Button onClick={() => navigate('/programacao')} className="relative">
-            Programação
-            {programacao.length > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {programacao.length}
-              </Badge>
-            )}
-          </Button>
-        </div>
+        
 
         <div className="flex flex-col items-center">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 w-full max-w-4xl">
