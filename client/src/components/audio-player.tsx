@@ -193,7 +193,6 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
     try {
       if (isPlaying) {
         audio.pause();
-        setIsPlaying(false);
       } else {
         console.log('Attempting to play audio from URL:', hymn.url);
         console.log('Audio element ready state:', audio.readyState);
@@ -257,7 +256,6 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
         }
         
         await audio.play();
-        setIsPlaying(true);
         onPlay?.();
       }
     } catch (error) {
