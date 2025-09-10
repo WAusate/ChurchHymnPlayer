@@ -396,7 +396,7 @@ export default function AudioPlayer({ hymn, onError, onPlay }: AudioPlayerProps)
               {[...Array(15)].map((_, i) => (
                 <div
                   key={i}
-                  className="rounded-t-sm equalizer-bar"
+                  className="rounded-t-sm equalizer-bar flex-none"
                   style={{
                     width: '4px',
                     height: `${8 + (i % 3) * 4}px`,

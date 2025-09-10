@@ -85,9 +85,18 @@
 }
 
 /* Equalizer pulse animation for the player */
-@layer components {
-  .equalizer-bar {
-    @apply animate-equalizer-pulse origin-bottom bg-gradient-to-t from-church-primary to-church-secondary;
+.equalizer-bar {
+  transform-origin: bottom;
+  background: linear-gradient(to top, var(--church-primary), var(--church-secondary));
+  animation: equalizer-pulse 1s ease-in-out infinite;
+}
+
+@keyframes equalizer-pulse {
+  0%, 100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
   }
 }
 
