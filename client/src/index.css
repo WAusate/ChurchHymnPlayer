@@ -85,9 +85,11 @@
 }
 
 /* Equalizer pulse animation for the player */
-.equalizer-bar {
-  animation: equalizer-pulse 1s ease-in-out infinite;
-  transform-origin: bottom;
+@layer components {
+  .equalizer-bar {
+    animation: equalizer-pulse 1s ease-in-out infinite;
+    transform-origin: bottom;
+  }
 }
 
 @keyframes equalizer-pulse {
