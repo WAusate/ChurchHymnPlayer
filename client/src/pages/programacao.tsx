@@ -42,7 +42,7 @@ export default function Programacao() {
                       <span className="text-church-text">{item.titulo}</span>
                       <div className="flex items-center space-x-2">
                         <Button size="sm" onClick={() => handlePlay(item)} data-testid={`button-play-${item.organKey}-${item.hymnIndex}`}>
-                          Play
+                          Tocar
                         </Button>
                         <Button 
                           size="sm" 
