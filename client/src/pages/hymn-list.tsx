@@ -113,11 +113,11 @@
                                                   <span className="text-church-primary font-bold text-lg mr-3 md:mr-4 bg-church-light bg-opacity-30 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-lg">
                                                     {index + 1}
                                                   </span>
-                                                  <div className="flex-1 min-w-0 pr-2">
-                                                    <h3 className="text-church-text font-semibold group-hover:text-church-primary text-sm md:text-base truncate">
+                                                  <div className="flex-1 min-w-0 pr-2 text-left">
+                                                    <h3 className="text-church-text font-semibold group-hover:text-church-primary text-sm md:text-base truncate text-left">
                                                       {hymn.titulo}
                                                     </h3>
-                                                    <p className="text-church-text opacity-60 text-xs md:text-sm">
+                                                    <p className="text-church-text opacity-60 text-xs md:text-sm text-left">
                                                       Hino {index + 1}
                                                     </p>
                                                   </div>
