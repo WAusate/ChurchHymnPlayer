@@ -111,22 +111,22 @@
                                           <Card className="w-full border-2 border-gray-100 hover:border-church-secondary hover:bg-church-light hover:bg-opacity-10 transition-all duration-200 group">
                                             <CardContent className="p-4">
                                               <div className="flex items-center justify-between">
-                                                <div className="flex items-center text-left">
-                                                  <span className="text-church-primary font-bold text-lg mr-4 bg-church-light bg-opacity-30 w-10 h-10 rounded-full flex items-center justify-center">
+                                                <div className="flex items-center text-left flex-1 min-w-0">
+                                                  <span className="text-church-primary font-bold text-lg mr-3 md:mr-4 bg-church-light bg-opacity-30 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm md:text-lg">
                                                     {index + 1}
                                                   </span>
-                                                  <div>
-                                                    <h3 className="text-church-text font-semibold group-hover:text-church-primary">
+                                                  <div className="flex-1 min-w-0 pr-2">
+                                                    <h3 className="text-church-text font-semibold group-hover:text-church-primary text-sm md:text-base truncate">
                                                       {hymn.titulo}
                                                     </h3>
-                                                    <p className="text-church-text opacity-60 text-sm">
+                                                    <p className="text-church-text opacity-60 text-xs md:text-sm">
                                                       Hino {index + 1}
                                                     </p>
                                                   </div>
                                                 </div>
-                                                <div className="flex items-center space-x-2">
+                                                <div className="flex items-center space-x-1 md:space-x-2 flex-shrink-0">
                                                   <label
-                                                    className="flex items-center space-x-1"
+                                                    className="flex items-center space-x-1 whitespace-nowrap"
                                                     onClick={(e) => e.stopPropagation()}
                                                   >
                                                     <Checkbox
@@ -135,9 +135,9 @@
                                                         toggleItem({ organKey, hymnIndex: index, titulo: hymn.titulo })
                                                       }
                                                     />
-                                                    <span className="text-sm text-church-text">Programar</span>
+                                                    <span className="text-xs md:text-sm text-church-text">Programar</span>
                                                   </label>
-                                                  <Play className="text-church-accent text-lg mr-2 opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5" />
+                                                  <Play className="text-church-accent text-lg mr-1 md:mr-2 opacity-0 group-hover:opacity-100 transition-opacity h-4 w-4 md:h-5 md:w-5" />
                                                   <ChevronRight className="text-church-text opacity-40 group-hover:opacity-100 transition-opacity h-4 w-4" />
                                                 </div>
                                               </div>
