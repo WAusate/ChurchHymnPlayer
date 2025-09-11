@@ -86,9 +86,7 @@
                                   <h2 className="text-2xl font-bold text-white mb-2">
                                     Hinos do {organ.name}
                                   </h2>
-                                  <p className="text-church-light">
-                                    Selecione um hino para reproduzir
-                                    {!isOnline && hasOfflineData && " (modo offline)"}
+                                  <p className="text-church-light">Selecione um hino para reproduzir ou programar{!isOnline && hasOfflineData && " (modo offline)"}
                                   </p>
                                 </div>
 
