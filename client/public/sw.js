@@ -159,13 +159,27 @@ self.addEventListener('message', (event) => {
   
   if (event.data && event.data.type === 'CHECK_UPDATES') {
     checkForUpdates().then((hasUpdates) => {
-      event.ports[0].postMessage({ hasUpdates });
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ hasUpdates });
+      }
+    }).catch((error) => {
+      console.error('[SW] Error checking updates:', error);
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ hasUpdates: false, error: true });
+      }
     });
   }
   
   if (event.data && event.data.type === 'CLEAR_CACHE') {
     clearAllCaches().then(() => {
-      event.ports[0].postMessage({ success: true });
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ success: true });
+      }
+    }).catch((error) => {
+      console.error('[SW] Error clearing caches:', error);
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ success: false, error: true });
+      }
     });
   }
 });
@@ -184,19 +198,46 @@ async function checkForUpdates() {
     ];
     
     const cache = await caches.open(STATIC_CACHE);
+    let hasUpdates = false;
     
     for (const file of hymnFiles) {
-      const cachedResponse = await cache.match(file);
-      const networkResponse = await fetch(file);
-      
-      if (!cachedResponse || 
-          (await cachedResponse.text()) !== (await networkResponse.clone().text())) {
-        await cache.put(file, networkResponse);
-        return true;
+      try {
+        const cachedResponse = await cache.match(file);
+        const networkResponse = await fetch(file);
+        
+        if (!networkResponse.ok) {
+          continue;
+        }
+        
+        if (!cachedResponse) {
+          await cache.put(file, networkResponse.clone());
+          hasUpdates = true;
+          console.log(`[SW] New hymn file added: ${file}`);
+          continue;
+        }
+        
+        const cachedText = await cachedResponse.text();
+        const networkText = await networkResponse.clone().text();
+        
+        if (cachedText !== networkText) {
+          await cache.put(file, networkResponse.clone());
+          hasUpdates = true;
+          console.log(`[SW] Updated hymn file: ${file}`);
+        }
+      } catch (error) {
+        console.error(`[SW] Error checking ${file}:`, error);
       }
     }
     
-    return false;
+    if (hasUpdates) {
+      const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+      clients.forEach(client => {
+        client.postMessage({ type: 'HYMNS_UPDATED' });
+      });
+    }
+    
+    console.log(`[SW] Update check complete. Has updates: ${hasUpdates}`);
+    return hasUpdates;
   } catch (error) {
     console.error('[SW] Error checking for updates:', error);
     return false;

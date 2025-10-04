@@ -20,6 +20,7 @@ function ConfigContent() {
   const [cacheSize, setCacheSize] = useState<number>(0);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [isClearingCache, setIsClearingCache] = useState(false);
+  const [isPrefetching, setIsPrefetching] = useState(false);
 
   useEffect(() => {
     loadStorageInfo();
@@ -45,11 +46,33 @@ function ConfigContent() {
   const handleCheckUpdates = async () => {
     setIsCheckingUpdates(true);
     try {
-      await pwaManager.checkForUpdates();
-      toast({
-        title: 'Verificação concluída',
-        description: 'Você está usando a versão mais recente.',
-      });
+      const hasUpdates = await pwaManager.checkForUpdates();
+      
+      if (hasUpdates) {
+        toast({
+          title: 'Atualizações encontradas!',
+          description: 'Baixando novos hinos automaticamente...',
+        });
+        
+        localStorage.removeItem('pwa_hymns_prefetched');
+        await pwaManager.prefetchHymns();
+        await loadStorageInfo();
+        localStorage.setItem('pwa_hymns_prefetched', 'true');
+        
+        toast({
+          title: 'Hinos atualizados!',
+          description: 'Os novos hinos foram baixados. O app será recarregado.',
+        });
+        
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        toast({
+          title: 'Verificação concluída',
+          description: 'Você está usando a versão mais recente.',
+        });
+      }
     } catch (error) {
       toast({
         title: 'Erro ao verificar atualizações',
@@ -58,6 +81,27 @@ function ConfigContent() {
       });
     } finally {
       setIsCheckingUpdates(false);
+    }
+  };
+
+  const handlePrefetchHymns = async () => {
+    setIsPrefetching(true);
+    try {
+      await pwaManager.prefetchHymns();
+      await loadStorageInfo();
+      toast({
+        title: 'Download concluído',
+        description: 'Todos os hinos foram baixados para uso offline.',
+      });
+      localStorage.setItem('pwa_hymns_prefetched', 'true');
+    } catch (error) {
+      toast({
+        title: 'Erro ao baixar hinos',
+        description: 'Tente novamente mais tarde.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsPrefetching(false);
     }
   };
 
@@ -162,6 +206,17 @@ function ConfigContent() {
             {/* Ações */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Button
+                onClick={handlePrefetchHymns}
+                disabled={isPrefetching}
+                variant="default"
+                className="w-full"
+                data-testid="button-download-hymns"
+              >
+                <Download className={`h-4 w-4 mr-2 ${isPrefetching ? 'animate-bounce' : ''}`} />
+                {isPrefetching ? 'Baixando...' : 'Baixar Todos os Hinos'}
+              </Button>
+
+              <Button
                 onClick={handleCheckUpdates}
                 disabled={isCheckingUpdates}
                 variant="outline"
@@ -176,7 +231,7 @@ function ConfigContent() {
                 onClick={handleClearCache}
                 disabled={isClearingCache}
                 variant="outline"
-                className="w-full text-red-600 border-red-300 hover:bg-red-50"
+                className="w-full text-red-600 border-red-300 hover:bg-red-50 md:col-span-2"
                 data-testid="button-clear-cache"
               >
                 <Trash2 className="h-4 w-4 mr-2" />

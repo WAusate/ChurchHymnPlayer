@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "@/components/error-boundary";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProgramacaoProvider } from "@/contexts/ProgramacaoContext";
-import { PWAUpdatePrompt, PWAStatusBar, PWAInstallPrompt } from "@/components/pwa-update-prompt";
+import { PWAUpdatePrompt, PWAStatusBar, PWAInstallPrompt, PWAPrefetchManager } from "@/components/pwa-update-prompt";
 import Home from "@/pages/home";
 import HymnList from "@/pages/hymn-list";
 import Player from "@/pages/player";
@@ -44,6 +44,7 @@ function App() {
             <TooltipProvider>
               <div className="min-h-screen bg-gray-50">
                 <PWAStatusBar />
+                <PWAPrefetchManager />
                 <Router />
                 <SimpleToastContainer />
                 <PWAUpdatePrompt />

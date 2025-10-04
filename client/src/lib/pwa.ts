@@ -61,8 +61,25 @@ export class PWAManager {
 
     try {
       await this.registration.update();
+      
+      const sw = this.registration.active || navigator.serviceWorker.controller;
+      if (sw) {
+        return new Promise((resolve) => {
+          const messageChannel = new MessageChannel();
+          
+          messageChannel.port1.onmessage = (event) => {
+            console.log('[PWA] Update check result:', event.data);
+            resolve(event.data.hasUpdates || false);
+          };
+          
+          sw.postMessage({ type: 'CHECK_UPDATES' }, [messageChannel.port2]);
+          
+          setTimeout(() => resolve(false), 10000);
+        });
+      }
+      
       console.log('[PWA] Update check completed');
-      return true;
+      return false;
     } catch (error) {
       console.error('[PWA] Update check failed:', error);
       return false;
@@ -108,6 +125,57 @@ export class PWAManager {
     }
 
     return totalSize;
+  }
+
+  async prefetchHymns(): Promise<void> {
+    console.log('[PWA] Starting hymn prefetch...');
+    
+    const organTypes = [
+      'campanha',
+      'comissao', 
+      'conjunto-musical',
+      'coral',
+      'criancas',
+      'grupo-jovem',
+      'proat',
+      'uniao-adolescentes'
+    ];
+
+    const cache = await caches.open('belem-play-v1-audio');
+    const cachedUrls = new Set<string>();
+    const cachedKeys = await cache.keys();
+    cachedKeys.forEach(request => cachedUrls.add(request.url));
+
+    for (const organ of organTypes) {
+      try {
+        const response = await fetch(`/data/hymns/${organ}.json`);
+        const hymns = await response.json();
+        
+        const audioUrls = hymns
+          .filter((hymn: any) => hymn.audioUrl && !cachedUrls.has(hymn.audioUrl))
+          .map((hymn: any) => hymn.audioUrl);
+        
+        console.log(`[PWA] Prefetching ${audioUrls.length} new hymns for ${organ} (${hymns.length - audioUrls.length} already cached)`);
+        
+        const fetchPromises = audioUrls.map(async (audioUrl: string) => {
+          try {
+            const audioResponse = await fetch(audioUrl);
+            if (audioResponse.ok) {
+              const clonedResponse = audioResponse.clone();
+              await cache.put(audioUrl, clonedResponse);
+            }
+          } catch (err) {
+            console.warn(`[PWA] Failed to prefetch audio ${audioUrl}:`, err);
+          }
+        });
+        
+        await Promise.all(fetchPromises);
+      } catch (error) {
+        console.error(`[PWA] Failed to prefetch ${organ}:`, error);
+      }
+    }
+    
+    console.log('[PWA] Hymn prefetch completed');
   }
 
   isOnline(): boolean {

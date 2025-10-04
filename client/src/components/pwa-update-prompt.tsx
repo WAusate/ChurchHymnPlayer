@@ -5,6 +5,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Download, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+export function PWAPrefetchManager() {
+  const [isPrefetching, setIsPrefetching] = useState(false);
+  const [hasPrefetched, setHasPrefetched] = useState(false);
+
+  useEffect(() => {
+    const prefetchKey = 'pwa_hymns_prefetched';
+    const alreadyPrefetched = localStorage.getItem(prefetchKey) === 'true';
+    
+    if (alreadyPrefetched) {
+      setHasPrefetched(true);
+      return;
+    }
+
+    if (navigator.onLine && 'serviceWorker' in navigator) {
+      const timer = setTimeout(async () => {
+        setIsPrefetching(true);
+        try {
+          await pwaManager.prefetchHymns();
+          localStorage.setItem(prefetchKey, 'true');
+          setHasPrefetched(true);
+        } catch (error) {
+          console.error('[PWA] Prefetch failed:', error);
+        } finally {
+          setIsPrefetching(false);
+        }
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  return null;
+}
+
 export function PWAUpdatePrompt() {
   const [updateInfo, setUpdateInfo] = useState<PWAUpdateInfo | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -26,6 +60,37 @@ export function PWAUpdatePrompt() {
       }
     });
 
+    let messageHandler: ((event: MessageEvent) => Promise<void>) | null = null;
+    
+    if ('serviceWorker' in navigator) {
+      messageHandler = async (event: MessageEvent) => {
+        if (event.data && event.data.type === 'HYMNS_UPDATED') {
+          console.log('[PWA] Received HYMNS_UPDATED broadcast');
+          toast({
+            title: 'Novos hinos disponíveis',
+            description: 'Baixando novos hinos automaticamente...',
+          });
+          
+          try {
+            localStorage.removeItem('pwa_hymns_prefetched');
+            await pwaManager.prefetchHymns();
+            localStorage.setItem('pwa_hymns_prefetched', 'true');
+            toast({
+              title: 'Hinos atualizados!',
+              description: 'Os novos hinos foram baixados. Recarregando...',
+            });
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          } catch (error) {
+            console.error('[PWA] Error prefetching after broadcast:', error);
+          }
+        }
+      };
+      
+      navigator.serviceWorker.addEventListener('message', messageHandler);
+    }
+
     pwaManager.onOnlineStatusChange((online) => {
       setIsOnline(online);
       if (online) {
@@ -42,13 +107,35 @@ export function PWAUpdatePrompt() {
       }
     });
 
-    const checkInterval = setInterval(() => {
+    const checkInterval = setInterval(async () => {
       if (navigator.onLine) {
-        pwaManager.checkForUpdates();
+        const hasUpdates = await pwaManager.checkForUpdates();
+        if (hasUpdates) {
+          console.log('[PWA] New hymns detected, prefetching...');
+          toast({
+            title: 'Novos hinos disponíveis',
+            description: 'Baixando novos hinos automaticamente...',
+          });
+          localStorage.removeItem('pwa_hymns_prefetched');
+          await pwaManager.prefetchHymns();
+          localStorage.setItem('pwa_hymns_prefetched', 'true');
+          toast({
+            title: 'Hinos atualizados!',
+            description: 'Os novos hinos foram baixados e estão prontos para uso.',
+          });
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        }
       }
     }, 5 * 60 * 1000);
 
-    return () => clearInterval(checkInterval);
+    return () => {
+      if (messageHandler && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', messageHandler);
+      }
+      clearInterval(checkInterval);
+    };
   }, [toast]);
 
   const handleUpdate = () => {
