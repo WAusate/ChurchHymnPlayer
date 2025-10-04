@@ -1,17 +1,37 @@
 import Layout from "@/components/layout";
 import FirebaseAdmin from "@/components/firebase-admin";
 import { FirebaseConfigWarning } from "@/lib/firebase-check";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useLocation } from "wouter";
-import { LogOut } from "lucide-react";
+import { LogOut, RefreshCw, Trash2, HardDrive, Download } from "lucide-react";
 import { isFirebaseConfigured } from "@/lib/firebase";
+import { pwaManager, checkStorageQuota } from "@/lib/pwa";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 function ConfigContent() {
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [storageInfo, setStorageInfo] = useState<{ usage: number; quota: number } | null>(null);
+  const [cacheSize, setCacheSize] = useState<number>(0);
+  const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
+  const [isClearingCache, setIsClearingCache] = useState(false);
+
+  useEffect(() => {
+    loadStorageInfo();
+  }, []);
+
+  const loadStorageInfo = async () => {
+    const quota = await checkStorageQuota();
+    setStorageInfo(quota);
+    
+    const size = await pwaManager.getCacheSize();
+    setCacheSize(size);
+  };
 
   const handleLogout = async () => {
     try {
@@ -20,6 +40,60 @@ function ConfigContent() {
     } catch (error) {
       console.error('Logout error:', error);
     }
+  };
+
+  const handleCheckUpdates = async () => {
+    setIsCheckingUpdates(true);
+    try {
+      await pwaManager.checkForUpdates();
+      toast({
+        title: 'Verificação concluída',
+        description: 'Você está usando a versão mais recente.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao verificar atualizações',
+        description: 'Tente novamente mais tarde.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCheckingUpdates(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    if (!confirm('Tem certeza que deseja limpar todo o cache? Isso removerá todos os hinos salvos offline.')) {
+      return;
+    }
+
+    setIsClearingCache(true);
+    try {
+      await pwaManager.clearCache();
+      await loadStorageInfo();
+      toast({
+        title: 'Cache limpo',
+        description: 'Todo o conteúdo em cache foi removido.',
+      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (error) {
+      toast({
+        title: 'Erro ao limpar cache',
+        description: 'Tente novamente mais tarde.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsClearingCache(false);
+    }
+  };
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
   return (
@@ -47,6 +121,75 @@ function ConfigContent() {
 
         {/* Aviso de configuração do Firebase (se necessário) */}
         <FirebaseConfigWarning />
+
+        {/* Configurações PWA */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Download className="h-5 w-5" />
+              Configurações do App
+            </CardTitle>
+            <CardDescription>
+              Gerencie o cache offline e atualizações do app
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Status de armazenamento */}
+            {storageInfo && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2">
+                    <HardDrive className="h-4 w-4" />
+                    Armazenamento usado
+                  </span>
+                  <span className="font-medium">
+                    {formatBytes(cacheSize)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>Espaço disponível</span>
+                  <span>{formatBytes(storageInfo.quota - storageInfo.usage)}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    style={{ width: `${(cacheSize / storageInfo.quota) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Ações */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Button
+                onClick={handleCheckUpdates}
+                disabled={isCheckingUpdates}
+                variant="outline"
+                className="w-full"
+                data-testid="button-check-updates"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isCheckingUpdates ? 'animate-spin' : ''}`} />
+                {isCheckingUpdates ? 'Verificando...' : 'Verificar Atualizações'}
+              </Button>
+
+              <Button
+                onClick={handleClearCache}
+                disabled={isClearingCache}
+                variant="outline"
+                className="w-full text-red-600 border-red-300 hover:bg-red-50"
+                data-testid="button-clear-cache"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isClearingCache ? 'Limpando...' : 'Limpar Cache'}
+              </Button>
+            </div>
+
+            <p className="text-xs text-gray-500 mt-2">
+              O app funciona offline armazenando os hinos em cache. 
+              Verificamos automaticamente por atualizações a cada 5 minutos quando você está online.
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Formulário de adicionar hino */}
         <div className="flex justify-center">

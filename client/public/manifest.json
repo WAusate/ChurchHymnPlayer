@@ -1,0 +1,43 @@
+{
+  "name": "Belém Play - Hinos CCB",
+  "short_name": "Belém Play",
+  "description": "App de hinos da CCB - Congresso Campinas Belém",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a365d",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["music", "entertainment"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Conjunto Musical",
+      "short_name": "Conjunto",
+      "description": "Acessar hinos do Conjunto Musical",
+      "url": "/hymn-list/conjunto-musical",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Coral",
+      "short_name": "Coral",
+      "description": "Acessar hinos do Coral",
+      "url": "/hymn-list/coral",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    }
+  ]
+}
