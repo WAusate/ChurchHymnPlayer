@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'belem-play-v1';
+const CACHE_VERSION = 'belem-play-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const AUDIO_CACHE = `${CACHE_VERSION}-audio`;
@@ -6,6 +6,7 @@ const AUDIO_CACHE = `${CACHE_VERSION}-audio`;
 const STATIC_ASSETS = [
   '/',
   '/index.html',
+  '/manifest.json',
   '/logo.png',
   '/logo.svg',
   '/detalhe-header.png',
