@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'belem-play-v3';
+const CACHE_VERSION = 'belem-play-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const AUDIO_CACHE = `${CACHE_VERSION}-audio`;
@@ -20,55 +20,8 @@ const STATIC_ASSETS = [
   '/data/hymns/uniao-adolescentes.json'
 ];
 
-const AUDIO_FILES = [
-  '/audio/campanha/hino1.mp3',
-  '/audio/campanha/hino2.mp3',
-  '/audio/campanha/hino3.mp3',
-  '/audio/campanha/hino4.mp3',
-  '/audio/campanha/hino5.mp3',
-  '/audio/comissao/hino1.mp3',
-  '/audio/comissao/hino2.mp3',
-  '/audio/comissao/hino3.mp3',
-  '/audio/comissao/hino4.mp3',
-  '/audio/comissao/hino5.mp3',
-  '/audio/conjunto/hino1.mp3',
-  '/audio/conjunto/hino2.mp3',
-  '/audio/conjunto/hino3.mp3',
-  '/audio/conjunto/hino4.mp3',
-  '/audio/conjunto/hino5.mp3',
-  '/audio/coral/hino1.mp3',
-  '/audio/coral/hino2.mp3',
-  '/audio/coral/hino3.mp3',
-  '/audio/coral/hino4.mp3',
-  '/audio/coral/hino5.mp3',
-  '/audio/coral/hino6.mp3',
-  '/audio/coral/hino7.mp3',
-  '/audio/coral/hino8.mp3',
-  '/audio/criancas/hino1.mp3',
-  '/audio/criancas/hino2.mp3',
-  '/audio/criancas/hino3.mp3',
-  '/audio/criancas/hino4.mp3',
-  '/audio/criancas/hino5.mp3',
-  '/audio/jovem/hino1.mp3',
-  '/audio/jovem/hino2.mp3',
-  '/audio/jovem/hino3.mp3',
-  '/audio/jovem/hino4.mp3',
-  '/audio/jovem/hino5.mp3',
-  '/audio/proat/hino1.mp3',
-  '/audio/proat/hino2.mp3',
-  '/audio/proat/hino3.mp3',
-  '/audio/proat/hino4.mp3',
-  '/audio/proat/hino5.mp3',
-  '/audio/uniao/hino1.mp3',
-  '/audio/uniao/hino2.mp3',
-  '/audio/uniao/hino3.mp3',
-  '/audio/uniao/hino4.mp3',
-  '/audio/uniao/hino5.mp3'
-];
-
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing Service Worker...');
-  console.log('[SW] Total audio files to cache on first play:', AUDIO_FILES.length);
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       console.log('[SW] Precaching static assets');
