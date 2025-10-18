@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useLocation } from "wouter";
 import SplashScreen from "@/components/SplashScreen";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ declare global {
 }
 
 interface LayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
   title?: string;                 // quando presente, mostra TÍTULO (sem logo)
   breadcrumbs?: string[];
   showBackButton?: boolean;

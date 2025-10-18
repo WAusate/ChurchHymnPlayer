@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 export interface ProgramItem {
   organKey: string;
@@ -18,7 +18,7 @@ const ProgramacaoContext = createContext<ProgramacaoContextType | undefined>(und
 
 const STORAGE_KEY = 'programacao';
 
-export function ProgramacaoProvider({ children }: { children: React.ReactNode }) {
+export function ProgramacaoProvider({ children }: { children: ReactNode }) {
   const [programacao, setProgramacao] = useState<ProgramItem[]>([]);
 
   useEffect(() => {

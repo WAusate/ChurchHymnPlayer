@@ -1,9 +1,9 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
