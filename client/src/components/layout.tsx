@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, useCallback, type ReactNode } from "react";
 import { useLocation } from "wouter";
 import SplashScreen from "@/components/SplashScreen";
 import { Button } from "@/components/ui/button";
@@ -54,8 +54,8 @@ export default function Layout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Splash: mostra no primeiro load desta ABA; não reaparece ao trocar de rota
-  const [showSplash, setShowSplash] = useState<boolean>(() => !window.__splashShown);
+  // Splash: desabilitada temporariamente devido a problemas de timeout
+  const [showSplash, setShowSplash] = useState<boolean>(() => false);
 
   const handleBackClick = () => {
     if (onBackClick) onBackClick();
@@ -75,18 +75,21 @@ export default function Layout({
     }
   };
 
+  // Memoize onFinish to prevent SplashScreen from restarting
+  const handleSplashFinish = useCallback(() => {
+    window.__splashShown = true;
+    setShowSplash(false);
+  }, []);
+
   return (
     <div className="min-h-screen bg-church-bg">
       {/* Splash por cima de tudo */}
       {showSplash && (
         <SplashScreen
-          holdMs={1200}
-          xfadeMs={950}
-          logoHoldMs={800}
-          onFinish={() => {
-            window.__splashShown = true; // marca como mostrado nesta ABA
-            setShowSplash(false);
-          }}
+          holdMs={800}
+          xfadeMs={600}
+          logoHoldMs={400}
+          onFinish={handleSplashFinish}
         />
       )}
       <header
@@ -149,8 +152,13 @@ export default function Layout({
                   variant="outline"
                   size="sm"
                   onClick={handleSettingsClick}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 text-white hover:text-white hover:bg-white/10 p-5 rounded-xl border-2 border-white/30 hover:border-white/50 bg-[#3d8ebd] mt-[0px] mb-[0px] pt-[20px] pb-[20px]"
-                  style={{ minHeight: "56px", minWidth: "56px" }}
+                  className="text-white hover:text-white hover:bg-white/10 rounded-xl border-2 border-white/30 hover:border-white/50"
+                  style={{ 
+                    minHeight: "56px", 
+                    minWidth: "56px",
+                    padding: "12px"
+                  }}
+                  data-testid="button-settings"
                 >
                   <Settings className="h-8 w-8" />
                 </Button>

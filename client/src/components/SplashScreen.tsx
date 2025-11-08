@@ -33,7 +33,10 @@ export default function SplashScreen({
       onFinish?.();
     }, holdMs + xfadeMs + logoHoldMs);
 
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    return () => { 
+      clearTimeout(t1); 
+      clearTimeout(t2); 
+    };
   }, [holdMs, xfadeMs, logoHoldMs, onFinish]);
 
   return (
