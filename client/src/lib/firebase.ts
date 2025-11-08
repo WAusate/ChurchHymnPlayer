@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { initializeFirestore, connectFirestoreEmulator, type Firestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAuth } from 'firebase/auth';
 
@@ -27,7 +27,7 @@ export const isFirebaseConfigured = Object.values(firebaseConfig).every(
 );
 
 let app: ReturnType<typeof initializeApp> | undefined;
-let db: ReturnType<typeof getFirestore> | undefined;
+let db: Firestore | undefined;
 let storage: ReturnType<typeof getStorage> | undefined;
 let auth: ReturnType<typeof getAuth> | undefined;
 let authReady: Promise<unknown> | undefined;
@@ -37,7 +37,10 @@ if (isFirebaseConfigured) {
   app = initializeApp(firebaseConfig);
 
   // Initialize Firestore with better error handling
-  db = getFirestore(app);
+  db = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+    useFetchStreams: false
+  });
   
   // Enable network persistence for better offline support
   try {
