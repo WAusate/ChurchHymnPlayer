@@ -61,3 +61,39 @@ Preferred communication style: Simple, everyday language.
 - **Firebase Storage**: Stores audio files for hymns, with a naming convention of `{organ}-{number}-{timestamp}.mp3`.
 - **Authentication**: Firebase Auth for user login and protected actions.
 - **Offline Functionality**: Downloads hymn data and audio URLs on first load, stores in localStorage for offline access, with connection status indication and automatic fallback.
+
+## Troubleshooting
+
+### CORS Error in Production (Firebase Storage)
+**Symptom**: Hymns load forever in production, console shows CORS errors like "Access to fetch has been blocked by CORS policy"
+
+**Cause**: Firebase Storage blocks cross-origin requests by default
+
+**Solutions**:
+1. **Quick Fix** - Make audio files public:
+   - Go to Firebase Console → Storage
+   - Click on `hinos/` folder → Edit Access → Set to Public
+   
+2. **Via Google Cloud Console**:
+   - Access: https://console.cloud.google.com/storage/browser
+   - Select bucket `app-hinos.appspot.com`
+   - Go to Permissions → Add Principal
+   - Add `allUsers` with role `Storage Object Viewer`
+
+3. **Via Command Line** (requires Google Cloud SDK):
+   ```bash
+   gcloud auth login
+   gcloud config set project app-hinos
+   gsutil cors set cors.json gs://app-hinos.appspot.com
+   ```
+
+4. **Automated Script**:
+   ```bash
+   bash aplicar-cors.sh
+   ```
+
+**Required Security Rules**:
+- Firestore: Allow public read, authenticated write for `hinos` collection
+- Storage: Allow public read, authenticated write for `hinos/` folder
+
+See `CORRIGIR_CORS_FIREBASE.md` for detailed instructions.
