@@ -152,7 +152,7 @@ export default function Layout({
                   variant="outline"
                   size="sm"
                   onClick={handleSettingsClick}
-                  className="text-white hover:text-white hover:bg-white/10 rounded-xl border-2 border-white/30 hover:border-white/50"
+                  className="bg-transparent text-white hover:text-white hover:bg-white/10 rounded-xl border-2 border-white/30 hover:border-white/50"
                   style={{ 
                     minHeight: "56px", 
                     minWidth: "56px",
